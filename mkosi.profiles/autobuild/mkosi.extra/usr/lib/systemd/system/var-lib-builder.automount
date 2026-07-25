@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Automount so the boot never waits for the builder partition. It is
+# absent in the installer and live systems, and unlocked only from the
+# second boot on (crypttab). The mount is triggered on first access,
+# which is the weekly image-rebuild service.
+[Unit]
+Description=Image Builder Workspace (automount)
+
+[Automount]
+Where=/var/lib/builder
+
+[Install]
+WantedBy=local-fs.target

@@ -7,6 +7,3 @@ What=/dev/mapper/builder
 Where=/var/lib/builder
 Type=btrfs
 Options=compress=zstd:1
-
-[Install]
-WantedBy=local-fs.target
