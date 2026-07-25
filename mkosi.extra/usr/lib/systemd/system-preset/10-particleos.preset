@@ -33,3 +33,13 @@ disable ssh.service
 enable sshd.socket
 enable ssh.socket
 enable sshd-keygen.service
+
+# Hardware and infrastructure services from the profiles.
+enable thermald.service
+enable irqbalance.service
+enable tailscaled.service
+enable bluetooth.service
+enable cups.socket
+
+# Same deal as gdm: enable manually after the first boot.
+disable plasma-login-manager.service
