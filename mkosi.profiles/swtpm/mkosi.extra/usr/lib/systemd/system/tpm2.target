@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Full replacement of the stock unit. The stock one wants
+# dev-tpm0.device, but after the initrd handoff the host swtpm becomes
+# tpm1, so that device never shows up and every boot hangs 90s on it.
+# An empty Wants= in a drop-in does not reset the list, hence the
+# replacement. After= is inert and can stay.
+[Unit]
+Description=Trusted Platform Module
+Documentation=man:systemd.special(7)
+After=dev-tpmrm0.device dev-tpm0.device systemd-tpm2-swtpm.service
