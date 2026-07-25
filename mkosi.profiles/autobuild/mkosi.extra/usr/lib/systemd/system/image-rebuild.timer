@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+[Unit]
+Description=Weekly Image Rebuild
+
+[Timer]
+OnCalendar=weekly
+RandomizedDelaySec=4h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

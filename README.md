@@ -72,9 +72,21 @@ UKI on that machine. Current devices: x270, t480, tuxedo.
 
 ## Updating
 
+Manually from any checkout:
+
 ```sh
 mkosi -B -ff sysupdate -- update --reboot
 ```
+
+Or self updating with the `autobuild` profile: the image then carries a
+24G encrypted builder partition and a weekly timer that rebuilds the
+frozen checkout on it with current packages and stages the result via
+sysupdate. Activation happens on the next regular reboot, a failed boot
+falls back automatically. Config changes stay manual and snapshotted:
+`builder-update-config.sh`. One time setup per machine:
+`builder-setup.sh`, then copy the signing key onto the partition. Note:
+the key lives on the machine then, an attacker with root access could
+sign images. A pkcs11 token avoids that, see the issues.
 
 ## Picking up upstream changes
 

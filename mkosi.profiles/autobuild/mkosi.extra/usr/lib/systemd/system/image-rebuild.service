@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Rebuilds the image from the frozen checkout on the builder partition
+# with current packages and stages it via sysupdate. Activation happens
+# on the next regular reboot, a failed boot falls back automatically
+# (boot counting). Does nothing until builder-setup.sh was run once.
+[Unit]
+Description=Weekly Image Rebuild
+Requires=var-lib-builder.mount
+After=var-lib-builder.mount network-online.target
+Wants=network-online.target
+ConditionACPower=true
+ConditionPathExists=/var/lib/builder/arch-image-based/mkosi.conf
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/lib/builder/arch-image-based
+ExecStart=/usr/bin/mkosi -B -ff sysupdate -- update
+ExecStartPost=/usr/bin/find /var/lib/builder/cache -type f -mtime +28 -delete
+TimeoutStartSec=3h
+Nice=10
+CPUWeight=20
+IOWeight=20

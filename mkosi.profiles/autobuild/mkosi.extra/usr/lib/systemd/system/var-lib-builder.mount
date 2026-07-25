@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+[Unit]
+Description=Image Builder Workspace
+
+[Mount]
+What=/dev/mapper/builder
+Where=/var/lib/builder
+Type=btrfs
+Options=compress=zstd:1
+
+[Install]
+WantedBy=local-fs.target
