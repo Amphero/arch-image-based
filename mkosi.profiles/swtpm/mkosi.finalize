@@ -1,0 +1,13 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# The unit ordering fixes have to work in the initrd too, that's where
+# the unlocking happens. Stable mkosi (v26) has no config knob to add
+# extra files to the default initrd, but it picks up any cpio dropped
+# into $ARTIFACTDIR/io.mkosi.initrd and appends it to the initrd, where
+# later entries win. So: pack the extra tree as a tiny cpio.
+set -euo pipefail
+
+mkdir -p "$ARTIFACTDIR/io.mkosi.initrd"
+cd "$SRCDIR/mkosi.profiles/swtpm/mkosi.extra"
+find usr -type f -o -type d | cpio -o -H newc --quiet \
+    > "$ARTIFACTDIR/io.mkosi.initrd/50-swtpm-units.cpio"
