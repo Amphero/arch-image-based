@@ -20,7 +20,8 @@ What is different from upstream:
 
 ## Building
 
-Needs mkosi from the current main branch. Configure in `mkosi.local.conf`:
+Everything here has to work with what Arch ships, no pre-release tools:
+`pacman -S mkosi` is all you need. Configure in `mkosi.local.conf`:
 
 ```conf
 [Config]
