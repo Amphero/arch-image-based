@@ -1,0 +1,12 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# The splash runs almost entirely in the initrd, but extra trees only
+# land in the image, so the initrd would keep the package default theme.
+# Append the plymouth config to the initrd the same way the swtpm
+# profile does it (stable mkosi has no initrd config knob).
+set -euo pipefail
+
+mkdir -p "$ARTIFACTDIR/io.mkosi.initrd"
+cd "$SRCDIR/mkosi.profiles/desktop/mkosi.extra"
+find etc/plymouth -type f -o -type d | cpio -o -H newc --quiet \
+    > "$ARTIFACTDIR/io.mkosi.initrd/60-plymouth-theme.cpio"
