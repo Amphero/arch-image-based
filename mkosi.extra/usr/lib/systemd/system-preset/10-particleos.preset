@@ -24,10 +24,10 @@ enable power-profiles-daemon.service
 # Our own service to run systemctl preset --global.
 enable preset-global.service
 
-# The display managers wait for the first boot wizard via drop-ins,
-# so they can be enabled right away.
-enable gdm.service
-enable plasmalogin.service
+# The display managers are not enabled here: presets only run on the
+# very first boot, so an A/B update to the other desktop would leave
+# the new display manager off. The desktop profiles ship static
+# graphical.target.wants links instead.
 
 # Prefer socket activated SSH over daemon SSH
 disable sshd.service
