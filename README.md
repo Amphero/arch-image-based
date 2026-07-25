@@ -40,7 +40,12 @@ TPM=no
 
 ## Install
 
+Build with the `installer` profile, it adds the live and installer
+entries to the boot menu. An installed system does not need them, so
+leave the profile out everywhere else.
+
 ```sh
+mkosi --profile=installer -f build
 mkosi burn /dev/<usb-stick>
 ```
 
