@@ -24,3 +24,12 @@ fi
 
 # No extra branding: this is plain Arch Linux, packaged as an image.
 # The distro's own os-release stays in place.
+
+# Tie system extensions to this exact image. systemd matches an
+# extension by ID= plus SYSEXT_LEVEL=, and Arch has no VERSION_ID= to
+# match on, so publish the image version as the level. An extension
+# built for another image then simply does not load, which is what we
+# want on a rollback.
+if [[ -n "${IMAGE_VERSION:-}" ]]; then
+    echo "SYSEXT_LEVEL=$IMAGE_VERSION" >>/usr/lib/os-release
+fi

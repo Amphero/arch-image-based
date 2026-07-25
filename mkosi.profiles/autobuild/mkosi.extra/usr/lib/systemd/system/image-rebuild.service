@@ -15,6 +15,9 @@ ConditionPathExists=/var/lib/builder/arch-image-based/mkosi.conf
 Type=oneshot
 WorkingDirectory=/var/lib/builder/arch-image-based
 ExecStart=/usr/bin/mkosi -B -ff sysupdate -- update
+# Best effort: a failed extension build must not mark the image update
+# as failed, the image itself is already staged at this point.
+ExecStartPost=-/var/lib/builder/arch-image-based/builder-rebuild-sysexts.sh
 ExecStartPost=/usr/bin/find /var/lib/builder/cache -type f -mtime +28 -delete
 TimeoutStartSec=3h
 Nice=10
