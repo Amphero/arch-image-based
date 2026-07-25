@@ -28,7 +28,8 @@ mkosi --directory "sysexts/$name" \
     --base-tree "$base" \
     --skeleton-tree "$db" \
     --output-directory "$PWD/mkosi.output" \
-    --output "$name.sysext" \
+    --output "$name" \
+    --output-extension "sysext.raw" \
     -f build
 
 echo "built mkosi.output/$name.sysext.raw"
