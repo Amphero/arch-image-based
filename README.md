@@ -4,8 +4,11 @@ Image-based Arch Linux built with [mkosi](https://github.com/systemd/mkosi),
 derived from [ParticleOS](https://github.com/systemd/particleos)
 (LGPL-2.1-or-later). You build and sign the image yourself, /usr is
 read-only and verity protected, updates install A/B and a failed boot
-rolls back on its own. One image serves all machines, device differences
-ship separately as signed addons and sysexts.
+rolls back on its own.
+
+The image is the same on all machines. Everything device specific stays
+outside of it: kernel parameters as signed addons, extra software as
+system extensions, user apps as flatpaks.
 
 ## Build
 
@@ -17,8 +20,12 @@ mkosi genkey
 mkosi -B -f
 ```
 
+`mkosi genkey` creates the signing key. It is the key the machine will
+trust for Secure Boot and verity, so keep it, and use a separate one per
+machine if you do not want one key to be valid on all of them.
+
 Profiles go into `mkosi.local.conf`, pick `gnome` or `kde`, add `swtpm`
-on machines without a hardware TPM, `autobuild` for self updates:
+on machines without a usable hardware TPM, `autobuild` for self updates:
 
 ```conf
 [Config]
@@ -53,15 +60,55 @@ Boot the stick with Secure Boot in setup mode and choose "Installer".
 The first boot of the installed system creates the encrypted partitions
 and asks for a user, then the login manager comes up.
 
+## System extensions
+
+Extensions add software to the read-only /usr without rebuilding the
+image, one per purpose in `sysexts/`:
+
+| name | contents |
+| --- | --- |
+| `tailscale` | tailscale and the NetworkManager plugin |
+| `t480` | tlp, replaces power-profiles-daemon |
+
+Build one against the image it will run on. This needs root, and the
+image provides the base tree so only the new files end up in the
+extension:
+
+```sh
+./build-sysext.sh tailscale mkosi.output/ArchLinux_<version>_x86-64.raw
+```
+
+Install it on the machine, as root:
+
+```sh
+cp tailscale.sysext.raw /var/lib/extensions/
+systemd-sysext refresh
+```
+
+That merges it immediately, and `systemd-sysext.service` merges it again
+on every boot. To check what is active, and to remove one again:
+
+```sh
+systemd-sysext status
+rm /var/lib/extensions/tailscale.sysext.raw
+systemd-sysext refresh
+```
+
+Services in an extension are started through symlinks in its own /usr,
+so nothing has to be enabled by hand. The tailscale extension needs the
+plugin package in `sysexts/tailscale/mkosi.packages/` before the build,
+see [networkmanager-tailscale](https://github.com/Amphero/networkmanager-tailscale).
+
 ## Device specific kernel parameters
 
-One cmdline file per device in `addons/` (currently x270, t480, tuxedo):
+One cmdline file per device in `addons/`. The addon is signed with the
+same key as the image, systemd-stub picks it up at boot:
 
 ```sh
 ./build-addon.sh t480
-# on the machine:
-mkdir -p /efi/loader/addons
-cp t480.addon.efi /efi/loader/addons/
+# on the machine, as root:
+mkdir -p /boot/loader/addons
+cp t480.addon.efi /boot/loader/addons/
 ```
 
 ## Self updates (autobuild profile)
@@ -77,16 +124,25 @@ systemctl start image-rebuild
 ```
 
 The weekly build never changes the configuration. Config updates are
-manual and snapshotted first:
+manual and take a snapshot first:
 
 ```sh
 ./builder-update-config.sh
 ```
 
-## Manual update
+## Update and rollback by hand
 
 ```sh
 mkosi -B -ff sysupdate -- update --reboot
+```
+
+Both the old and the new version stay on disk and in the boot menu. To
+go back, pick the older entry in the menu, or set it as the default:
+
+```sh
+bootctl list
+bootctl set-default ArchLinux_<older version>_x86-64.efi
+systemctl reboot
 ```
 
 ## Notes
@@ -94,8 +150,8 @@ mkosi -B -ff sysupdate -- update --reboot
 - User apps are not in the image, install them from Flathub.
 - swtpm enrolls without a PCR policy, the protection comes from the
   boot-secret encrypted TPM state.
-- With autobuild the signing key lives on the machine, see issue #6 for
-  the pkcs11 alternative.
+- With autobuild the signing key lives on the machine, in the encrypted
+  builder partition.
 - Upstream changes: `git fetch upstream`, then cherry-pick.
 
 Open work: [issues](https://github.com/Amphero/arch-image-based/issues).

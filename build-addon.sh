@@ -5,8 +5,8 @@
 #   ./build-addon.sh x270
 #   -> mkosi.output/x270.addon.efi
 # Install on the target machine (systemd-stub picks up global addons):
-#   mkdir -p /efi/loader/addons
-#   cp x270.addon.efi /efi/loader/addons/
+#   mkdir -p /boot/loader/addons
+#   cp x270.addon.efi /boot/loader/addons/
 # Needs ukify + sbsign and the mkosi signing key in this directory.
 set -euo pipefail
 
