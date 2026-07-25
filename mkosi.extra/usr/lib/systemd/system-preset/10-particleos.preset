@@ -27,7 +27,7 @@ enable preset-global.service
 # The display managers wait for the first boot wizard via drop-ins,
 # so they can be enabled right away.
 enable gdm.service
-enable plasma-login-manager.service
+enable plasmalogin.service
 
 # Prefer socket activated SSH over daemon SSH
 disable sshd.service
