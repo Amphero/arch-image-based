@@ -16,8 +16,10 @@ What is different from upstream:
   yourself (the flathub profile preinstalls the remote).
 - A swtpm profile for machines without a hardware TPM: LUKS auto-unlock
   via systemd's software TPM (systemd-tpm2-swtpm), state encrypted on
-  the ESP. Validated in a VM without a TPM (first boot enrolls, second
-  boot unlocks from the persisted state), not yet on real hardware.
+  the ESP. Validated in a VM without a TPM: direct image boot and the
+  full installer path (installer entry, systemd-sysinstall onto a blank
+  disk, first boot enrolls, reboots unlock from the persisted state).
+  Not yet on real hardware.
   Note: the enrollment binds no PCR policy, a software TPM never gets
   measured into. The protection comes from the boot-secret-encrypted
   TPM state, which only the signed UKI can obtain.
