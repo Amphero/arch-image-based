@@ -13,8 +13,12 @@ name="${1:?usage: build-sysext.sh <name>  (one of: $(ls -d sysexts/*/ 2>/dev/nul
 base="$PWD/mkosi.output/ArchLinux__x86-64.raw"
 [ -e "$base" ] || { echo "build the main image first ($base is missing)"; exit 1; }
 
+# The skeleton links /var/lib/pacman to the database the image keeps in
+# /usr (see mkosi.conf.d/arch/mkosi.postinst). Without it pacman thinks
+# the base tree is empty and pulls every dependency into the extension.
 mkosi --directory "sysexts/$name" \
     --base-tree "$base" \
+    --skeleton-tree "$PWD/sysexts/skeleton" \
     --output-directory "$PWD/mkosi.output" \
     --output "$name.sysext" \
     -f build
