@@ -1,0 +1,7 @@
+# TUXEDO InfinityBook 14 v5
+psmouse.synaptics_intertouch=1
+acpi_osi=Linux
+i915.enable_fbc=1
+i915.enable_guc=2
+i915.fastboot=1
+mem_sleep_default=deep
