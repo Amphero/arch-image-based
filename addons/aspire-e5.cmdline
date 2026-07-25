@@ -1,0 +1,4 @@
+# Acer Aspire E5-576
+i915.enable_fbc=1
+i915.fastboot=1
+mem_sleep_default=deep
