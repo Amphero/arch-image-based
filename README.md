@@ -17,7 +17,6 @@ pacman -S mkosi
 git clone https://github.com/Amphero/arch-image-based
 cd arch-image-based
 mkosi genkey
-mkosi -B -f
 ```
 
 `mkosi genkey` creates the signing key. It is the key the machine will
@@ -25,11 +24,23 @@ trust for Secure Boot and verity, so keep it, and use a separate one per
 machine if you do not want one key to be valid on all of them.
 
 Profiles go into `mkosi.local.conf`, pick `gnome` or `kde`, add `swtpm`
-on machines without a usable hardware TPM, `autobuild` for self updates:
+on machines without a usable hardware TPM, `autobuild` for self updates,
+and `installer` for the image you are going to burn to a stick. The
+command line has no effect on profiles, they have to be in this file:
 
 ```conf
 [Config]
-Profiles=desktop,gnome,flathub,swtpm,autobuild
+Profiles=desktop,gnome,flathub,swtpm,autobuild,installer
+```
+
+`installer` adds the live and installer entries to the boot menu. An
+installed system does not need them, and the config that
+`builder-setup.sh` writes for the self updates leaves the profile out.
+
+Then build:
+
+```sh
+mkosi -B -f
 ```
 
 ## Test in a VM
@@ -47,12 +58,7 @@ TPM=no
 
 ## Install
 
-Build with the `installer` profile, it adds the live and installer
-entries to the boot menu. An installed system does not need them, so
-leave the profile out everywhere else.
-
 ```sh
-mkosi --profile=installer -f build
 mkosi burn /dev/<usb-stick>
 ```
 
