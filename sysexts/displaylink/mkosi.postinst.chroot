@@ -2,12 +2,8 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # Builds evdi against the kernel of the base image and installs the
 # DisplayLink manager, mirroring the AUR displaylink and evdi packages.
-# Everything runs in the chroot: the toolchain lives in the buildroot,
-# not in the base tree the script itself sees.
-set -euo pipefail
-
-cp "$SRCDIR"/files/* "$BUILDROOT/tmp/"
-cat >"$BUILDROOT/tmp/build-evdi.sh" <<'EOF'
+# The .chroot suffix runs the whole script inside the image, where the
+# toolchain from Packages= actually is.
 set -euo pipefail
 
 evdi_ver=1.14.10
@@ -28,6 +24,7 @@ if [ ! -d "/usr/lib/modules/$kver/build" ]; then
     exit 1
 fi
 
+files="$SRCDIR/files"
 cd "$(mktemp -d)"
 
 # evdi: kernel module and userspace library
@@ -52,15 +49,11 @@ install -Dm644 driver/*.spkg -t /usr/lib/displaylink
 install -Dm644 driver/LICENSE /usr/share/licenses/displaylink/LICENSE
 
 # service, udev rule and sleep hook as shipped by the AUR package
-install -Dm644 /tmp/99-displaylink.rules /usr/lib/udev/rules.d/99-displaylink.rules
-install -Dm755 /tmp/udev.sh /opt/displaylink/udev.sh
-install -Dm644 /tmp/displaylink.service /usr/lib/systemd/system/displaylink.service
-install -Dm755 /tmp/displaylink-sleep.sh /usr/lib/systemd/system-sleep/displaylink.sh
+install -Dm644 "$files/99-displaylink.rules" /usr/lib/udev/rules.d/99-displaylink.rules
+install -Dm755 "$files/udev.sh" /opt/displaylink/udev.sh
+install -Dm644 "$files/displaylink.service" /usr/lib/systemd/system/displaylink.service
+install -Dm755 "$files/displaylink-sleep.sh" /usr/lib/systemd/system-sleep/displaylink.sh
 
 # Regenerate the module index so modprobe finds evdi. This runs on the
 # merged tree, so the new index covers the base modules as well.
 depmod -a "$kver"
-EOF
-
-mkosi-chroot bash /tmp/build-evdi.sh
-rm -f "$BUILDROOT"/tmp/build-evdi.sh "$BUILDROOT"/tmp/{udev.sh,99-displaylink.rules,displaylink.service,displaylink-sleep.sh}
