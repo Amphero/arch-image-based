@@ -11,3 +11,5 @@ mkosi.version
 mkosi.rootpw
 .mkosi-private
 sysexts/*/mkosi.packages/
+
+mkosi.output-kde/
