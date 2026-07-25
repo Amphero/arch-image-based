@@ -1,104 +1,96 @@
 # arch-image-based
 
-Image-based Arch Linux, built with [mkosi](https://github.com/systemd/mkosi).
-Derived from [ParticleOS](https://github.com/systemd/particleos)
-(LGPL-2.1-or-later) and keeps its mechanics: you build the image yourself
-and sign it with your own keys, /usr is dm-verity protected, boot is via
-signed UKIs, updates come from your clone via systemd-sysupdate.
+Image-based Arch Linux built with [mkosi](https://github.com/systemd/mkosi),
+derived from [ParticleOS](https://github.com/systemd/particleos)
+(LGPL-2.1-or-later). You build and sign the image yourself, /usr is
+read-only and verity protected, updates install A/B and a failed boot
+rolls back on its own. One image serves all machines, device differences
+ship separately as signed addons and sysexts.
 
-One image serves several machines. Device differences are not baked in,
-they ship separately:
+## Build
 
-| Difference | Mechanism |
-|---|---|
-| kernel parameters (quirks, sleep, mitigations) | signed UKI addon on that machine's ESP, see below |
-| extra packages (tlp, vendor tools) | signed sysext in /var/lib/extensions, planned (issues) |
-| configuration and enabled services | plain /etc, per machine, survives updates |
+```sh
+pacman -S mkosi
+git clone https://github.com/Amphero/arch-image-based
+cd arch-image-based
+mkosi genkey
+mkosi -B -f
+```
 
-## Differences from upstream
-
-- Arch only, stock Arch packages, stable mkosi from the repos. OBS
-  profiles, other distros, netboot and sway are removed.
-- No ParticleOS branding, the system identifies as Arch Linux.
-- The gnome and kde profiles carry the desktop plus its integration
-  (gvfs, portals, thumbnailers, printing, remote desktop). User apps are
-  left out, they come from Flathub (the flathub profile ships the
-  remote). kde uses plasma-login-manager instead of sddm.
-- The display managers are enabled and ordered after the first boot
-  wizard, no manual enabling.
-- Silent boot with the firmware logo (plymouth bgrt) for the main, live
-  and installer entries. Factory reset, emergency and debug stay verbose.
-- The boot does not wait for the network.
-- swtpm profile for machines without a hardware TPM: LUKS auto-unlock
-  via systemd's software TPM, state encrypted on the ESP. Validated in a
-  VM (direct image boot and the full installer path, reboots unlock from
-  the persisted state), not yet on real hardware. The enrollment binds
-  no PCR policy, a software TPM never gets measured into; the protection
-  comes from the boot-secret-encrypted TPM state, which only the signed
-  UKI can obtain.
-
-## Building
-
-`pacman -S mkosi` is all you need. Configure in `mkosi.local.conf`:
+Profiles go into `mkosi.local.conf`, pick `gnome` or `kde`, add `swtpm`
+on machines without a hardware TPM, `autobuild` for self updates:
 
 ```conf
 [Config]
-Profiles=desktop,gnome,flathub
-# kde instead of gnome, add swtpm on machines without a TPM
+Profiles=desktop,gnome,flathub,swtpm,autobuild
 ```
 
-Generate your signing key once with `mkosi genkey`, then build with
-`mkosi -B -f`. Test in a VM with `mkosi vm` (`--console=gui` for
-graphics, `[Runtime] TPM=no` in mkosi.local.conf to exercise the swtpm
-path). Write to a USB drive with `mkosi burn /dev/<usb>`, boot it with
-Secure Boot in setup mode and use the "Installer" entry. Details on
-installation, smartcard keys and recovery keys are in the
-[upstream README](https://github.com/systemd/particleos), everything
-there applies here too.
+## Test in a VM
 
-## Per-device kernel cmdline
+```sh
+mkosi vm --console=gui
+```
 
-One cmdline file per device in `addons/`, built and signed with
-`./build-addon.sh <device>`, installed on that machine's ESP:
+To exercise the swtpm path, add to `mkosi.local.conf`:
+
+```conf
+[Runtime]
+TPM=no
+```
+
+## Install
+
+```sh
+mkosi burn /dev/<usb-stick>
+```
+
+Boot the stick with Secure Boot in setup mode and choose "Installer".
+The first boot of the installed system creates the encrypted partitions
+and asks for a user, then the login manager comes up.
+
+## Device specific kernel parameters
+
+One cmdline file per device in `addons/` (currently x270, t480, tuxedo):
 
 ```sh
 ./build-addon.sh t480
+# on the machine:
 mkdir -p /efi/loader/addons
-cp mkosi.output/t480.addon.efi /efi/loader/addons/
+cp t480.addon.efi /efi/loader/addons/
 ```
 
-systemd-stub verifies the signature and appends the parameters to every
-UKI on that machine. Current devices: x270, t480, tuxedo.
+## Self updates (autobuild profile)
 
-## Updating
+The machine rebuilds its image weekly with current packages and stages
+it, the next reboot activates it. One time setup, as root on the
+machine:
 
-Manually from any checkout:
+```sh
+./builder-setup.sh
+cp mkosi.key mkosi.crt /var/lib/builder/arch-image-based/
+systemctl start image-rebuild
+```
+
+The weekly build never changes the configuration. Config updates are
+manual and snapshotted first:
+
+```sh
+./builder-update-config.sh
+```
+
+## Manual update
 
 ```sh
 mkosi -B -ff sysupdate -- update --reboot
 ```
 
-Or self updating with the `autobuild` profile: the image then carries a
-24G encrypted builder partition and a weekly timer that rebuilds the
-frozen checkout on it with current packages and stages the result via
-sysupdate. Activation happens on the next regular reboot, a failed boot
-falls back automatically. Config changes stay manual and snapshotted:
-`builder-update-config.sh`. One time setup per machine:
-`builder-setup.sh`, then copy the signing key onto the partition. Note:
-the key lives on the machine then, an attacker with root access could
-sign images. A pkcs11 token avoids that, see the issues.
+## Notes
 
-## Picking up upstream changes
+- User apps are not in the image, install them from Flathub.
+- swtpm enrolls without a PCR policy, the protection comes from the
+  boot-secret encrypted TPM state.
+- With autobuild the signing key lives on the machine, see issue #6 for
+  the pkcs11 alternative.
+- Upstream changes: `git fetch upstream`, then cherry-pick.
 
-No full merges, upstream changes get cherry-picked as needed:
-
-```sh
-git fetch upstream
-git log upstream/main --oneline
-git cherry-pick <commit>
-```
-
-## Status
-
-Open work is tracked in the
-[issues](https://github.com/Amphero/arch-image-based/issues).
+Open work: [issues](https://github.com/Amphero/arch-image-based/issues).
