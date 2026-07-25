@@ -14,10 +14,9 @@ dl_sha=7269856c7527060c513215ce1b5a36fef074d8e89cab89bcab13df342acce098
 # compile against, otherwise the module is useless on the target.
 set -- /usr/lib/modules/*/vmlinuz
 kimg=$(basename "$(dirname "$1")")
-set -- /usr/lib/modules/*/build
-khdr=$(basename "$(dirname "$1")")
-if [ "$kimg" != "$khdr" ]; then
-    echo "kernel mismatch: base image has $kimg, linux-headers has $khdr" >&2
+if [ ! -d "/usr/lib/modules/$kimg/build" ]; then
+    echo "no headers for the kernel in the base image ($kimg), the repo" >&2
+    echo "has $(pacman -Q linux-headers 2>/dev/null || echo none)" >&2
     echo "rebuild image and sysext from the same snapshot (builder flow)" >&2
     exit 1
 fi
@@ -32,7 +31,7 @@ echo "$evdi_sha  evdi.tar.gz" | sha256sum -c -
 tar xf evdi.tar.gz
 # No DKMS_BUILD here: the Makefile treats any non-empty value, even 0,
 # as "use the dkms branch".
-make -C "evdi-$evdi_ver/module" KVER="$khdr"
+make -C "evdi-$evdi_ver/module" KVER="$kimg"
 make -C "evdi-$evdi_ver/library"
 install -Dm644 "evdi-$evdi_ver/module/evdi.ko" "$DESTDIR/usr/lib/modules/$kimg/extra/evdi.ko"
 install -Dm755 "evdi-$evdi_ver/library/libevdi.so" "$DESTDIR/usr/lib/libevdi.so"
