@@ -1,5 +1,5 @@
 {
-    "userName": "particleos",
+    "userName": "arch",
     "uid": 1000,
     "gid": 1000,
     "disposition": "regular",
@@ -10,9 +10,6 @@
         "systemd-journal"
     ],
     "secret": {
-        "password": ["particleos"]
-    },
-    "privileged": {
-        "hashedPassword": ["$1$idWouTQ8$ez22l/yqjROCxwZ27R1kO."]
+        "password": ["arch"]
     }
 }
