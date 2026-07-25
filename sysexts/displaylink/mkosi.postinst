@@ -1,0 +1,10 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Regenerate the module index so modprobe finds evdi. Runs on the
+# merged overlay, so the updated index covers the base modules too and
+# ends up in the extension.
+set -euo pipefail
+
+for d in "$BUILDROOT"/usr/lib/modules/*/; do
+    mkosi-chroot depmod -a "$(basename "$d")"
+done
