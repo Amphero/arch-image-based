@@ -8,8 +8,8 @@ signed UKIs, updates come from your clone via systemd-sysupdate.
 
 What is different from upstream:
 
-- Arch only, using the stock Arch systemd. The OBS profiles for newer
-  systemd builds are not needed and not used.
+- Arch only, using the stock Arch systemd. The OBS profiles, the other
+  distro configs, the netboot image and sway are removed.
 - No ParticleOS branding, the system identifies as what it is: Arch Linux.
 - The gnome and kde profiles contain only the desktop core. Everything
   that exists as a flatpak is left out, install apps from Flathub
@@ -41,12 +41,12 @@ there applies here too.
 mkosi -B -ff sysupdate -- update --reboot
 ```
 
-## Merging upstream
+## Picking up upstream changes
+
+No full merges, upstream changes get cherry-picked as needed:
 
 ```sh
 git fetch upstream
-git merge upstream/main
+git log upstream/main --oneline    # see what happened
+git cherry-pick <commit>
 ```
-
-The delta is kept small on purpose: the swtpm profile is purely additive,
-the rest is package list edits.
