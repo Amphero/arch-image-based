@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Static replacement for the gpt-auto generated unit, minus the fsck.
+# The generated one requires systemd-fsck@<esp>, and every fsck instance
+# is ordered after fsck-root, which waits for the root device, which
+# repart only creates after the swtpm is up, which needs this very
+# mount: a deadlock the cycle detector can't see (the device has no
+# ordering edge back to repart). Skipping fsck on the vfat ESP cuts it.
+[Unit]
+Description=EFI System Partition (Early)
+DefaultDependencies=no
+Conflicts=initrd-switch-root.target umount.target
+Before=initrd-switch-root.target umount.target
+
+[Mount]
+What=/dev/disk/by-designator/esp
+Where=/sysefi
+Type=vfat
+Options=rw,umask=0077

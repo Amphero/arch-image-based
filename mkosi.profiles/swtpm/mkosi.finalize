@@ -9,5 +9,5 @@ set -euo pipefail
 
 mkdir -p "$ARTIFACTDIR/io.mkosi.initrd"
 cd "$SRCDIR/mkosi.profiles/swtpm/mkosi.extra"
-find usr -type f -o -type d | cpio -o -H newc --quiet \
+find usr etc -type f -o -type d | cpio -o -H newc --quiet \
     > "$ARTIFACTDIR/io.mkosi.initrd/50-swtpm-units.cpio"
