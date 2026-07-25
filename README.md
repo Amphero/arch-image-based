@@ -42,6 +42,15 @@ profile. Details on installation, smartcard keys and recovery keys are in
 the [upstream README](https://github.com/systemd/particleos), everything
 there applies here too.
 
+## Per-device kernel cmdline
+
+The image is identical for every machine. Device specific kernel
+parameters (touchpad quirks, mitigation tuning, sleep modes) are shipped
+as small signed UKI addons instead: one cmdline file per device in
+`addons/`, built and signed with `./build-addon.sh <device>`, installed
+on that machine's ESP under `loader/addons/`. systemd-stub verifies the
+signature and appends the parameters for every UKI on that machine.
+
 ## Updating
 
 ```sh
