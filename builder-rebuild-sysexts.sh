@@ -17,8 +17,9 @@ base=$(ls -t "$d"/output/ArchLinux_*_*.raw 2>/dev/null | grep -v '\.usr-\|\.esp\
 
 cd "$d/arch-image-based"
 
-# The installed extensions, by name without the version suffix.
-names=$(ls "$ext" 2>/dev/null | sed -n 's/^\([a-z0-9-]*\)_.*\.sysext\.raw$/\1/p' | sort -u)
+# The installed extensions, by name. Extensions built before the
+# version binding have no suffix, take those along as well.
+names=$(ls "$ext" 2>/dev/null | sed -n 's/\.sysext\.raw$//p' | sed 's/_[0-9]\{8,\}$//' | sort -u)
 [ -n "$names" ] || exit 0
 
 for name in $names; do
@@ -26,6 +27,8 @@ for name in $names; do
     ./build-sysext.sh "$name" "$base"
     cp mkosi.output/"$name"_*.sysext.raw "$ext"/
 
+    # An unversioned leftover would merge on any image, drop it.
+    rm -f "$ext/$name.sysext.raw"
     # Keep the two newest, one per image slot.
     ls -t "$ext/$name"_*.sysext.raw | tail -n +3 | xargs -r rm -f
 done
