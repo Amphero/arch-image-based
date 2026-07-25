@@ -1,0 +1,6 @@
+# ThinkPad T480
+psmouse.synaptics_intertouch=1
+acpi_os_name=Linux
+acpi_osi=
+reboot=pci
+mem_sleep_default=deep
