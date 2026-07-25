@@ -1,0 +1,6 @@
+# ThinkPad X270
+psmouse.synaptics_intertouch=1
+retbleed=stuff
+acpi_osi=Linux
+i915.enable_fbc=1
+mem_sleep_default=deep
