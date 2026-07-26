@@ -68,59 +68,83 @@ and asks for a user, then the login manager comes up.
 
 ## System extensions
 
-Extensions add software to the read-only /usr without rebuilding the
-image, one per purpose in `sysexts/`:
+Extensions add packages to the read-only /usr without rebuilding the
+image, for software only some of your machines need. Write your own as
+a directory under `sysexts/`, `sysexts/tailscale` and `sysexts/t480`
+are two examples:
 
-| name | contents |
-| --- | --- |
-| `tailscale` | tailscale and the NetworkManager plugin |
-| `t480` | tlp, replaces power-profiles-daemon |
+```conf
+# sysexts/foo/mkosi.conf
+[Distribution]
+Distribution=arch
 
-Build one against the image it will run on. This needs root, and the
-image provides the base tree so only the new files end up in the
-extension:
+[Output]
+Format=sysext
+Overlay=yes
+
+[Content]
+Packages=
+        foo
+```
+
+A unit in an extension is not enabled by the preset, symlink it in the
+extension itself, in `sysexts/foo/mkosi.extra/`:
 
 ```sh
-./build-sysext.sh tailscale mkosi.output/ArchLinux_<version>_x86-64.raw
+usr/lib/systemd/system/multi-user.target.wants/foo.service -> ../foo.service
+```
+
+The same trick masks something from the image, symlink it to
+`/dev/null`. Packages that are not in the Arch repos go into
+`sysexts/foo/mkosi.packages/` as built packages.
+
+Build the extension against the image it will run on, as root:
+
+```sh
+./build-sysext.sh foo mkosi.output/ArchLinux_<version>_x86-64.raw
 ```
 
 Install it on the machine, as root:
 
 ```sh
-cp tailscale_<version>.sysext.raw /var/lib/extensions/
+cp foo_<version>.sysext.raw /var/lib/extensions/
 systemd-sysext refresh
 ```
 
-That merges it immediately, and `systemd-sysext.service` merges it again
-on every boot. To check what is active, and to remove one again:
+`systemd-sysext.service` merges it again on every boot. To see what is
+active, and to remove one:
 
 ```sh
 systemd-sysext status
-rm /var/lib/extensions/tailscale_<version>.sysext.raw
+rm /var/lib/extensions/foo_<version>.sysext.raw
 systemd-sysext refresh
 ```
 
 An extension only merges on the image it was built for, so both slots
 can keep their own copy and a rollback picks up the matching one. With
-the `autobuild` profile this is automatic: the weekly build rebuilds
-every installed extension against the new image and keeps the two
-newest, one per slot.
-
-Services in an extension are started through symlinks in its own /usr,
-so nothing has to be enabled by hand. The tailscale extension needs the
-plugin package in `sysexts/tailscale/mkosi.packages/` before the build,
-see [networkmanager-tailscale](https://github.com/Amphero/networkmanager-tailscale).
+the `autobuild` profile the weekly build rebuilds every installed
+extension against the new image and keeps the two newest.
 
 ## Device specific kernel parameters
 
-One cmdline file per device in `addons/`. The addon is signed with the
-same key as the image, systemd-stub picks it up at boot:
+The image ships one cmdline for everyone. Parameters a single machine
+needs go into a file per machine in `addons/`, one parameter per line,
+the files in there are examples:
 
 ```sh
-./build-addon.sh t480
+# addons/foo.cmdline
+i915.enable_fbc=1
+mem_sleep_default=deep
+```
+
+The addon is signed with the same key as the image, systemd-stub picks
+it up at boot:
+
+```sh
+./build-addon.sh foo
 # on the machine, as root:
 mkdir -p /boot/loader/addons
-cp t480.addon.efi /boot/loader/addons/
+cp foo.addon.efi /boot/loader/addons/
 ```
 
 ## Self updates (autobuild profile)
