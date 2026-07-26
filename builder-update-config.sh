@@ -12,10 +12,9 @@ git -C "$d/arch-image-based" tag "config/$ts" 2>/dev/null || true
 git -C "$d/arch-image-based" pull --ff-only
 
 # Two, like the two slots on disk: the config the running image was
-# built from and the one before it. Older ones are of no use, the
-# checkout is a git repo and every snapshot also has its tag. They are
-# not free either, a snapshot pins whatever was in the checkout at the
-# time, build output included.
+# built from and the one before it. Older ones are not free either, a
+# snapshot pins whatever was in the checkout at the time, build output
+# included.
 for old in $(ls -1d "$d/snapshots"/* 2>/dev/null | sort | head -n -$keep); do
     btrfs subvolume delete "$old" >/dev/null
     git -C "$d/arch-image-based" tag -d "config/$(basename "$old")" >/dev/null 2>&1 || true
