@@ -87,7 +87,7 @@ extension:
 Install it on the machine, as root:
 
 ```sh
-cp tailscale.sysext.raw /var/lib/extensions/
+cp tailscale_<version>.sysext.raw /var/lib/extensions/
 systemd-sysext refresh
 ```
 
@@ -96,9 +96,15 @@ on every boot. To check what is active, and to remove one again:
 
 ```sh
 systemd-sysext status
-rm /var/lib/extensions/tailscale.sysext.raw
+rm /var/lib/extensions/tailscale_<version>.sysext.raw
 systemd-sysext refresh
 ```
+
+An extension only merges on the image it was built for, so both slots
+can keep their own copy and a rollback picks up the matching one. With
+the `autobuild` profile this is automatic: the weekly build rebuilds
+every installed extension against the new image and keeps the two
+newest, one per slot.
 
 Services in an extension are started through symlinks in its own /usr,
 so nothing has to be enabled by hand. The tailscale extension needs the
