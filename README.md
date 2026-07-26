@@ -186,6 +186,32 @@ bootctl set-default ArchLinux_<older version>_x86-64.efi
 systemctl reboot
 ```
 
+## What a lost TPM costs you
+
+Root, swap and the builder partition are encrypted against the TPM and
+nothing else, `systemd-repart` enrolls no passphrase and no recovery
+key. On a machine without a hardware TPM the swtpm profile keeps the
+TPM state on the ESP, encrypted with a boot secret in an EFI variable.
+Clearing the firmware, replacing the board or damaging the ESP
+therefore takes those three partitions with it, and with them the
+signing key if the machine builds its own images.
+
+/home is a separate partition and not encrypted itself, systemd-homed
+keeps every user in a password protected image inside it. User data is
+the one thing that survives, and it can be opened on any other machine
+with the user password.
+
+So the worst case is a reinstall with a fresh key, and enrolling that
+key in Secure Boot again. If you would rather have a way back, add a
+second unlock method per machine, which leaves the TPM path untouched:
+
+```sh
+systemd-cryptenroll --recovery-key /dev/<root partition>
+```
+
+Note that the factory reset entry in the boot menu wipes root and home.
+The builder partition survives it on purpose.
+
 ## Notes
 
 - User apps are not in the image, install them from Flathub.
