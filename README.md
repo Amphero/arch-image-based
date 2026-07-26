@@ -121,9 +121,14 @@ systemd-sysext refresh
 ```
 
 An extension only merges on the image it was built for, so both slots
-can keep their own copy and a rollback picks up the matching one. With
-the `autobuild` profile the weekly build rebuilds every installed
-extension against the new image and keeps the two newest.
+can keep their own copy and a rollback picks up the matching one.
+
+With the `autobuild` profile the weekly build rebuilds the installed
+extensions against the new image and keeps the two newest. It builds
+what it finds a recipe for in `sysexts/`, so put yours there and bring
+it onto the machine with `builder-update-config.sh`. An extension
+without a recipe is left alone, which means it stops merging after the
+next update, since it is built for the previous image.
 
 ## Device specific kernel parameters
 
