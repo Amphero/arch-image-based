@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+# The remotes.d file only preconfigures the system installation, the
+# per-user installation starts empty. Add flathub there too, from the
+# local copy so it works offline. Idempotent, so it can just run on
+# every login.
+[Unit]
+Description=Flathub for the per-user flatpak installation
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flatpak remote-add --user --if-not-exists flathub /usr/share/flatpak/remotes.d/flathub.flatpakrepo
