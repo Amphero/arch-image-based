@@ -4,3 +4,4 @@
 # Linux drives usually carry, so match it by its repart label instead
 # of hiding that type globally.
 SUBSYSTEM=="block", ENV{ID_PART_ENTRY_NAME}=="*-builder", ENV{UDISKS_IGNORE}="1"
+SUBSYSTEM=="block", ENV{DM_NAME}=="builder", ENV{UDISKS_IGNORE}="1"

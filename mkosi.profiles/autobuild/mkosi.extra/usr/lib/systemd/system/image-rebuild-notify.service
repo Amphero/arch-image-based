@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Tell everyone who is logged in that the staged update is ready. Uses
+# gdbus since libnotify is not in the image, and runs on the user's own
+# bus via systemd-run so it works from a system service. Best effort,
+# with nobody logged in the update simply applies on the next reboot.
+[Unit]
+Description=Notify logged in users about the staged update
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c ' \
+    loginctl list-users --no-legend | while read -r uid user rest; do \
+        systemd-run --machine="$$user@.host" --user --collect --quiet -- \
+            gdbus call --session \
+                --dest org.freedesktop.Notifications \
+                --object-path /org/freedesktop/Notifications \
+                --method org.freedesktop.Notifications.Notify \
+                "image-rebuild" 0 software-update-available-symbolic \
+                "System update staged" \
+                "The new image is built, it takes effect on the next reboot." \
+                "[]" "{}" 10000 || :; \
+    done'

@@ -10,6 +10,7 @@ After=var-lib-builder.mount network-online.target
 Wants=network-online.target
 ConditionACPower=true
 ConditionPathExists=/var/lib/builder/arch-image-based/mkosi.conf
+OnSuccess=image-rebuild-notify.service
 
 [Service]
 Type=oneshot
