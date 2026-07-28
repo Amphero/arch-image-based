@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+# The builder partition is linux-generic, the same type GUID external
+# Linux drives usually carry, so match it by its repart label instead
+# of hiding that type globally.
+SUBSYSTEM=="block", ENV{ID_PART_ENTRY_NAME}=="*-builder", ENV{UDISKS_IGNORE}="1"
