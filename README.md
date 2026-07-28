@@ -210,7 +210,10 @@ systemd-cryptenroll --recovery-key /dev/<root partition>
 ```
 
 Note that the factory reset entry in the boot menu wipes root and home.
-The builder partition survives it on purpose.
+The builder partition survives it on purpose. The variant with TPM2
+clear also resets the TPM for a reinstall with a fresh key, and storage
+target mode exposes the whole disk over NVMe-TCP so another machine can
+image it or rescue /home without a live stick.
 
 ## Notes
 
