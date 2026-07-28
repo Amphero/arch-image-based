@@ -186,6 +186,14 @@ bootctl set-default ArchLinux_<older version>_x86-64.efi
 systemctl reboot
 ```
 
+Careful: set-default pins that exact version, updates then no longer
+become the default. Once done with the rollback, clear the pin, the
+menu goes back to booting the newest image on its own:
+
+```sh
+bootctl set-default ""
+```
+
 ## What a lost TPM costs you
 
 Root, swap and the builder partition are encrypted against the TPM and
