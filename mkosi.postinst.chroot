@@ -22,6 +22,14 @@ if [[ -f /usr/lib/tmpfiles.d/20-systemd-userdb.conf.example ]]; then
     ln --symbolic 20-systemd-userdb.conf.example /usr/lib/tmpfiles.d/20-systemd-userdb.conf
 fi
 
+# Locales have to be compiled into /usr at build time, locale-gen
+# cannot write to the read-only /usr on the installed system. The
+# default LANG lives in /usr/share/factory/etc/locale.conf.
+if command -v locale-gen >/dev/null; then
+    printf '%s\n' 'de_DE.UTF-8 UTF-8' 'en_US.UTF-8 UTF-8' >/etc/locale.gen
+    locale-gen
+fi
+
 # No extra branding: this is plain Arch Linux, packaged as an image.
 # The distro's own os-release stays in place.
 
