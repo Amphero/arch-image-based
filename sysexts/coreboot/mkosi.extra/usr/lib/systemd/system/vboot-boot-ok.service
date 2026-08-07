@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+# Marks the boot successful in the vboot non-volatile block. Without it
+# vboot never sees a confirmed boot, so the TPM rollback counter stays
+# put and an armed trial slot falls back after its tries run out. Runs
+# late on purpose: "successful" should mean the system actually came up.
+
+[Unit]
+Description=Report a successful boot to vboot
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/vbnv boot-ok
+
+[Install]
+WantedBy=multi-user.target
