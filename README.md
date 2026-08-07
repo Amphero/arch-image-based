@@ -130,6 +130,32 @@ it onto the machine with `builder-update-config.sh`. An extension
 without a recipe is left alone, which means it stops merging after the
 next update, since it is built for the previous image.
 
+### The coreboot extension
+
+`sysexts/coreboot` carries what a machine running the
+[custom coreboot/vboot firmware](https://github.com/Amphero/custom-coreboot-t480)
+needs on the device side:
+
+- `flashrom` for internal updates of the firmware regions
+- `vbnv`, a copy of the firmware repo's `scripts/vbnv.py`, to steer the
+  A/B slots: `show`, `try-next`, `boot-ok`, `arm-update`
+- `vboot-boot-ok.service`, enabled statically, reports each successful
+  boot - without it the TPM rollback counter never moves and an armed
+  trial slot always falls back
+- a modules-load.d entry for the `nvram` module behind `/dev/nvram`,
+  which vbnv reads the vboot block through
+
+`cbmem`, the eventlog reader, is not in the Arch repos. Build it from
+the fetched coreboot tree (`make -C util/cbmem`) and put it into
+`sysexts/coreboot/mkosi.packages/` as a package. Internal flashing
+additionally needs `iomem=relaxed` on the kernel cmdline, which an
+extension cannot set - put it in the machine's addon for the flash,
+see below.
+
+vbnv expects the vboot non-volatile block at CMOS offset 0x26. That
+holds for firmware built from the linked repo; check
+`VBOOT_VBNV_OFFSET` before pointing it at anything else.
+
 ## Device specific kernel parameters
 
 The image ships one cmdline for everyone. Parameters a single machine
