@@ -41,3 +41,19 @@ fi
 if [[ -n "${IMAGE_VERSION:-}" ]]; then
     echo "SYSEXT_LEVEL=$IMAGE_VERSION" >>/usr/lib/os-release
 fi
+
+# fwupd applies firmware capsules through its own EFI binary, which has
+# to pass Secure Boot under the image's key. /usr is immutable on the
+# installed system, so the signed copy has to be produced here - the
+# runtime `sbctl sign` route from the coreboot firmware's GUIDE cannot
+# work. Signing is unconditional: on machines without that firmware the
+# .signed file just sits next to the original.
+if [[ -f /usr/lib/fwupd/efi/fwupdx64.efi ]]; then
+    if [[ ! -f "$SRCDIR/mkosi.key" ]]; then
+        echo "mkosi.key missing - cannot sign fwupdx64.efi, capsule updates would fail" >&2
+        exit 1
+    fi
+    sbsign --key "$SRCDIR/mkosi.key" --cert "$SRCDIR/mkosi.crt" \
+        --output /usr/lib/fwupd/efi/fwupdx64.efi.signed \
+        /usr/lib/fwupd/efi/fwupdx64.efi
+fi
