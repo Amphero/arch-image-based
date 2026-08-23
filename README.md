@@ -144,6 +144,14 @@ needs on the device side:
   trial slot always falls back
 - a modules-load.d entry for the `nvram` module behind `/dev/nvram`,
   which vbnv reads the vboot block through
+- `fwupd.conf` behind the `/etc/fwupd` factory symlink: local capsule
+  cabs (`OnlyTrusted=false` - authenticity is the firmware's PKCS#7
+  check, not fwupd's), no shim with your own Secure Boot keys, and the
+  dual-battery power check
+- a modprobe blacklist for the `spi-intel` driver: fwupd's Locked-MTD
+  checks want block-protection bits in the flash chip, which the SMM
+  capsule writer rules out - with no MTD device the checks do not
+  apply, and internal flashrom talks PCI directly anyway
 
 `cbmem`, the eventlog reader, is not in the Arch repos. Build it from
 the fetched coreboot tree (`make -C util/cbmem`) and put it into
@@ -151,6 +159,14 @@ the fetched coreboot tree (`make -C util/cbmem`) and put it into
 additionally needs `iomem=relaxed` on the kernel cmdline, which an
 extension cannot set - put it in the machine's addon for the flash,
 see below.
+
+Two things stay outside the extension. `fwupdx64.efi` has to be signed
+with the machine's Secure Boot key at image build time - `/usr` is
+immutable, so the firmware repo's runtime `sbctl sign` step cannot work
+here. And `fwupdmgr install` can race the ESP automount (gpt-auto,
+120 s idle timeout): when UDisks reports the partition as already
+mounted, trigger the mount (`stat /efi/EFI`) or restart fwupd and
+retry.
 
 vbnv expects the vboot non-volatile block at CMOS offset 0x26. That
 holds for firmware built from the linked repo; check
