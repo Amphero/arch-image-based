@@ -195,6 +195,11 @@ mkdir -p /boot/loader/addons
 cp foo.addon.efi /boot/loader/addons/
 ```
 
+The stub applies every addon in that directory, so feature addons
+stack with the device one. `silent-boot` hides the error and status
+output the image's defaults still allow; drop it next to the device
+addon on machines that should boot without any text.
+
 ## Self updates (autobuild profile)
 
 The machine rebuilds its image weekly with current packages and stages

@@ -1,0 +1,7 @@
+# Fully silent boot, stacks on top of a device addon. The image
+# defaults keep errors and slow-boot status visible (loglevel=3,
+# systemd.show_status=auto); addon cmdlines are appended after the
+# UKI's own, so the values here win.
+loglevel=1
+systemd.show_status=false
+rd.udev.log_level=1
