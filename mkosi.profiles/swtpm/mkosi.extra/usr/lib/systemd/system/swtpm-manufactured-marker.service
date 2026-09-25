@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# systemd 262 wipes a swtpm state without the .manufactured marker in
+# the initrd and creates a new TPM. 261 never wrote the marker, and
+# root, swap and the builder partition have no passphrase, so set it
+# for an existing state before the swtpm starts. Does nothing once the
+# marker is there. bash instead of touch, the initrd may lack coreutils.
+[Unit]
+Description=Mark existing swtpm state as manufactured
+DefaultDependencies=no
+ConditionPathExists=/etc/initrd-release
+ConditionFileNotEmpty=/sysefi/loader/swtpm/tpm2-00.permall
+ConditionPathExists=!/sysefi/loader/swtpm/.manufactured
+Wants=sysefi.mount
+After=sysefi.mount
+Before=systemd-tpm2-swtpm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c ': >>/sysefi/loader/swtpm/.manufactured'
