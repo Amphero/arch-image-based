@@ -141,7 +141,7 @@ next update, since it is built for the previous image.
 ### The coreboot extension
 
 `sysexts/coreboot` carries what a machine running the
-[custom coreboot/vboot firmware](https://github.com/Amphero/custom-coreboot-t480)
+[custom coreboot/vboot firmware](https://github.com/Amphero/coreboot-t480)
 needs on the device side:
 
 - `flashrom` for internal updates of the firmware regions
