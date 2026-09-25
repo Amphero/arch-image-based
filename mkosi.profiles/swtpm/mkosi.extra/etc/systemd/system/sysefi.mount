@@ -2,9 +2,10 @@
 # Static replacement for the gpt-auto generated unit, minus the fsck.
 # The generated one requires systemd-fsck@<esp>, and every fsck instance
 # is ordered after fsck-root, which waits for the root device, which
-# repart only creates after the swtpm is up, which needs this very
-# mount: a deadlock the cycle detector can't see (the device has no
-# ordering edge back to repart). Skipping fsck on the vfat ESP cuts it.
+# repart only creates after the swtpm is up, which needs this mount.
+# That deadlocks, and systemd does not detect it because the device has
+# no ordering edge back to repart. Skipping fsck on the vfat ESP avoids
+# it.
 [Unit]
 Description=EFI System Partition (Early)
 DefaultDependencies=no

@@ -148,34 +148,33 @@ needs on the device side:
 - `vbnv`, a copy of the firmware repo's `scripts/vbnv.py`, to steer the
   A/B slots: `show`, `try-next`, `boot-ok`, `arm-update`
 - `vboot-boot-ok.service`, enabled statically, reports each successful
-  boot - without it the TPM rollback counter never moves and an armed
+  boot. Without it the TPM rollback counter never moves and an armed
   trial slot always falls back
 - a modules-load.d entry for the `nvram` module behind `/dev/nvram`,
   which vbnv reads the vboot block through
 - `fwupd.conf` behind the `/etc/fwupd` factory symlink: local capsule
-  cabs (`OnlyTrusted=false` - authenticity is the firmware's PKCS#7
-  check, not fwupd's), no shim with your own Secure Boot keys, and the
-  dual-battery power check
-- a modprobe blacklist for the `spi-intel` driver: fwupd's Locked-MTD
+  cabs (`OnlyTrusted=false`, the firmware checks the PKCS#7 signature
+  itself), no shim with your own Secure Boot keys, and the dual-battery
+  power check
+- a modprobe blacklist for the `spi-intel` driver. fwupd's Locked-MTD
   checks want block-protection bits in the flash chip, which the SMM
-  capsule writer rules out - with no MTD device the checks do not
-  apply, and internal flashrom talks PCI directly anyway
+  capsule writer rules out. With no MTD device the checks do not apply,
+  and internal flashrom talks PCI directly anyway
 
 `cbmem`, the eventlog reader, is not in the Arch repos. Build it from
 the fetched coreboot tree (`make -C util/cbmem`) and put it into
 `sysexts/coreboot/mkosi.packages/` as a package. Internal flashing
 additionally needs `iomem=relaxed` on the kernel cmdline, which an
-extension cannot set - put it in the machine's addon for the flash,
-see below.
+extension cannot set. Put it in the machine's addon for the flash, see
+below.
 
 `fwupdx64.efi` is signed with the image's key at build time
-(`mkosi.postinst.chroot`) - `/usr` is immutable, so the firmware repo's
+(`mkosi.postinst.chroot`). `/usr` is immutable, so the firmware repo's
 runtime `sbctl sign` step cannot work here. The machine's firmware has
-to have the mkosi certificate enrolled, same as for the UKIs. One
-runtime stumbling block remains: `fwupdmgr install` can race the ESP
-automount (gpt-auto, 120 s idle timeout) - when UDisks reports the
-partition as already mounted, trigger the mount (`stat /efi/EFI`) or
-restart fwupd and retry.
+to have the mkosi certificate enrolled, same as for the UKIs.
+`fwupdmgr install` can race the ESP automount (gpt-auto, 120 s idle
+timeout). When UDisks reports the partition as already mounted, trigger
+the mount (`stat /efi/EFI`) or restart fwupd and retry.
 
 vbnv expects the vboot non-volatile block at CMOS offset 0x26. That
 holds for firmware built from the linked repo; check
@@ -249,43 +248,5 @@ menu goes back to booting the newest image on its own:
 ```sh
 bootctl set-default ""
 ```
-
-## What a lost TPM costs you
-
-Root, swap and the builder partition are encrypted against the TPM and
-nothing else, `systemd-repart` enrolls no passphrase and no recovery
-key. On a machine without a hardware TPM the swtpm profile keeps the
-TPM state on the ESP, encrypted with a boot secret in an EFI variable.
-Clearing the firmware, replacing the board or damaging the ESP
-therefore takes those three partitions with it, and with them the
-signing key if the machine builds its own images.
-
-/home is a separate partition and not encrypted itself, systemd-homed
-keeps every user in a password protected image inside it. User data is
-the one thing that survives, and it can be opened on any other machine
-with the user password.
-
-So the worst case is a reinstall with a fresh key, and enrolling that
-key in Secure Boot again. If you would rather have a way back, add a
-second unlock method per machine, which leaves the TPM path untouched:
-
-```sh
-systemd-cryptenroll --recovery-key /dev/<root partition>
-```
-
-Note that the factory reset entry in the boot menu wipes root and home.
-The builder partition survives it on purpose. The variant with TPM2
-clear also resets the TPM for a reinstall with a fresh key, and storage
-target mode exposes the whole disk over NVMe-TCP so another machine can
-image it or rescue /home without a live stick.
-
-## Notes
-
-- User apps are not in the image, install them from Flathub.
-- swtpm enrolls without a PCR policy, the protection comes from the
-  boot-secret encrypted TPM state.
-- With autobuild the signing key lives on the machine, in the encrypted
-  builder partition.
-- Upstream changes: `git fetch upstream`, then cherry-pick.
 
 Open work: [issues](https://github.com/Amphero/arch-image-based/issues).

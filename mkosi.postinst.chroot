@@ -36,15 +36,15 @@ fi
 # Tie system extensions to this exact image. systemd matches an
 # extension by ID= plus SYSEXT_LEVEL=, and Arch has no VERSION_ID= to
 # match on, so publish the image version as the level. An extension
-# built for another image then simply does not load, which is what we
-# want on a rollback.
+# built for another image then does not load, which is what we want on
+# a rollback.
 if [[ -n "${IMAGE_VERSION:-}" ]]; then
     echo "SYSEXT_LEVEL=$IMAGE_VERSION" >>/usr/lib/os-release
 fi
 
 # fwupd applies firmware capsules through its own EFI binary, which has
 # to pass Secure Boot under the image's key. /usr is immutable on the
-# installed system, so the signed copy has to be produced here - the
+# installed system, so the signed copy has to be produced here, the
 # runtime `sbctl sign` route from the coreboot firmware's GUIDE cannot
 # work. Signing is unconditional: on machines without that firmware the
 # .signed file just sits next to the original.
