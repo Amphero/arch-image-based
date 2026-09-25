@@ -98,6 +98,14 @@ The same trick masks something from the image, symlink it to
 `/dev/null`. Packages that are not in the Arch repos go into
 `sysexts/foo/mkosi.packages/` as built packages.
 
+To restart a service whenever the extension is refreshed, list it in
+`sysexts/foo/extension-release`, `sysexts/tailscale` does that for
+tailscaled:
+
+```conf
+EXTENSION_RESTART_UNITS=foo.service
+```
+
 Build the extension against the image it will run on, as root:
 
 ```sh

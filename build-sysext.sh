@@ -41,6 +41,8 @@ echo "base image: $base ($version)"
 d="$work/extra/usr/lib/extension-release.d"
 mkdir -p "$d"
 printf 'ID=arch\nSYSEXT_LEVEL=%s\n' "$version" >"$d/extension-release.$out"
+# Extra fields from the recipe, e.g. EXTENSION_RESTART_UNITS=.
+[ -f "sysexts/$name/extension-release" ] && cat "sysexts/$name/extension-release" >>"$d/extension-release.$out"
 
 mkosi --directory "sysexts/$name" \
     --base-tree "$base" \
