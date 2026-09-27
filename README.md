@@ -188,7 +188,7 @@ the files in there are examples:
 
 ```sh
 # addons/foo.cmdline
-i915.enable_fbc=1
+psmouse.synaptics_intertouch=1
 mem_sleep_default=deep
 ```
 

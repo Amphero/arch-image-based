@@ -1,4 +1,5 @@
 # ThinkPad T480
 psmouse.synaptics_intertouch=1
+retbleed=stuff
 mem_sleep_default=deep
 intel_iommu=on
