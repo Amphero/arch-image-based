@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # systemd 262 wipes a swtpm state without the .manufactured marker in
 # the initrd and creates a new TPM. 261 never wrote the marker, and
-# root has no passphrase, so set it for an existing state before the swtpm starts. Does nothing once the
-# marker is there. bash instead of touch, the initrd may lack coreutils.
+# root has no passphrase, so set it for an existing state before the
+# swtpm starts. Does nothing once the marker is there. bash instead of
+# touch, the initrd may lack coreutils.
 [Unit]
 Description=Mark existing swtpm state as manufactured
 DefaultDependencies=no
