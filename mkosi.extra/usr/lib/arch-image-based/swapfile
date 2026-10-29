@@ -1,0 +1,39 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Swap behind zswap the way GNOME OS does it (gnome-build-meta,
+# zswap-generator): a sparse file of four times the RAM on the encrypted
+# root, attached to a loop device, because swapon refuses files with
+# holes. Swap is enabled with discard, so pages that are freed again are
+# punched out of the file: on disk it only takes what was written back.
+# Recreated on every boot, nothing in it survives a reboot anyway.
+set -euo pipefail
+
+file=/swap/swapfile
+
+case "$1" in
+start)
+    # live and installer run from RAM, no swap file there
+    [ "$(findmnt -no FSTYPE /)" = btrfs ] || exit 0
+    [ -d /swap ] || btrfs subvolume create /swap
+    rm -f "$file"
+    install -m 0600 /dev/null "$file"
+    chattr +C "$file"          # no copy on write, before the first byte
+    ram_kib=$(awk '/^MemTotal:/ { print $2 }' /proc/meminfo)
+    truncate -s $((ram_kib * 1024 * 4)) "$file"
+    # mkswap warns about the holes, the loop device hides them from swapon
+    mkswap --label swapfile "$file" >/dev/null 2>&1
+    dev=$(losetup --find --show "$file")
+    swapon --discard "$dev"
+    ;;
+stop)
+    for dev in $(losetup --list --noheadings --output NAME --associated "$file" 2>/dev/null); do
+        swapoff "$dev" 2>/dev/null || true
+        losetup --detach "$dev"
+    done
+    rm -f "$file"
+    ;;
+*)
+    echo "usage: swapfile start|stop" >&2
+    exit 1
+    ;;
+esac

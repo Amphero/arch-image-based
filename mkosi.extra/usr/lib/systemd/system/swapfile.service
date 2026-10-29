@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Sparse swap file on a loop device, see /usr/lib/arch-image-based/swapfile.
+# A plain service instead of a .swap unit: on the live system there is no
+# loop device to wait for, a .swap unit would hold up the boot until its
+# device timeout.
+[Unit]
+Description=Sparse Swap File
+DefaultDependencies=no
+After=local-fs.target
+Before=swap.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/arch-image-based/swapfile start
+ExecStop=/usr/lib/arch-image-based/swapfile stop

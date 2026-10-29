@@ -192,6 +192,15 @@ tmpfiles, tlp only reads `/etc`. Being part of the image, it follows
 updates and rollbacks and survives a factory reset. Local changes go
 into a later drop-in such as `/etc/tlp.d/50-local.conf`.
 
+## Swap
+
+zswap compresses swapped pages in RAM first, what does not fit goes to
+a sparse file on the encrypted root, set up the way GNOME OS does it: a
+file of four times the RAM behind a loop device, enabled with discard
+(`swapfile.service`). It only takes the disk space that is actually
+written back and gives it back once the pages are freed. Installations
+from before keep their swap partition in addition, until a reinstall.
+
 ## Update and rollback by hand
 
 ```sh
