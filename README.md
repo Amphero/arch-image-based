@@ -239,11 +239,11 @@ every machine. tlp-pd serves the same D-Bus interface, so the power mode
 menu in GNOME and KDE keeps working, and tlp's defaults need no config.
 Switch by hand there or with `tlp performance | balanced | power-saver`.
 
-Device tuning comes with the device profile: `t480` carries its drop-in
-in `/usr/lib/tlp.d` and links it into `/etc/tlp.d` via tmpfiles, tlp
-only reads `/etc`. Being part of the image, it follows updates and
-rollbacks and survives a factory reset. Local changes go into a later
-drop-in such as `/etc/tlp.d/50-local.conf`.
+Device tuning comes with the device profile: `t480` and `x270` carry
+their drop-in in `/usr/lib/tlp.d` and link it into `/etc/tlp.d` via
+tmpfiles, tlp only reads `/etc`. Being part of the image, it follows
+updates and rollbacks and survives a factory reset. Local changes go
+into a later drop-in such as `/etc/tlp.d/50-local.conf`.
 
 ## Update and rollback by hand
 
