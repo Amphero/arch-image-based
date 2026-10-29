@@ -40,7 +40,5 @@ enable sshd-keygen.service
 
 # Hardware and infrastructure services from the profiles.
 enable systemd-sysext.service
-enable thermald.service
-enable irqbalance.service
 enable bluetooth.service
 enable cups.socket
