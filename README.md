@@ -27,12 +27,11 @@ lives on the machine, so use a separate one per machine: a machine that
 is taken over can then only sign images for itself, not for all the
 others.
 
-`mkosi.local.conf` only holds what differs per machine. The command
-line has no effect on profiles, they have to be in this file:
+`mkosi.local.conf` only holds what differs per machine:
 
 ```conf
 [Config]
-Profiles=gnome,t480,installer
+Profiles=gnome,t480
 ```
 
 | Profile     | When                                                  |
@@ -43,22 +42,21 @@ Profiles=gnome,t480,installer
 | `swtpm`     | machines without a usable hardware TPM                |
 | `tailscale` | Tailscale client and NetworkManager plugin            |
 | `t480` …    | one device profile, see below                         |
-| `installer` | the image you are going to burn to a stick            |
-
-`builder-setup.sh` takes the profiles over from the running image and
-leaves `installer` out.
 
 Desktop, Flathub and the self rebuild are not profiles, they live in
 `mkosi.conf.d/` and are always on.
 
-`installer` adds the live and installer entries to the boot menu. An
-installed system does not need them.
-
-Then build:
+Build the installed image, or the stick with the live, installer and
+rescue entries (storage target mode, TPM2 clear) on top:
 
 ```sh
 mkosi -B -f
+mkosi --profile=installer -B -f
 ```
+
+The installed boot menu shows exactly the two image versions. For an
+emergency shell boot the stick's "Live System" and unlock with the
+recovery key.
 
 ## Test in a VM
 
@@ -76,7 +74,7 @@ TPM=no
 ## Install
 
 ```sh
-mkosi burn /dev/<usb-stick>
+mkosi --profile=installer burn /dev/<usb-stick>
 ```
 
 Boot the stick with Secure Boot in setup mode and choose "Installer".
@@ -153,7 +151,9 @@ KernelCommandLine=
         mem_sleep_default=deep
 ```
 
-`builder-setup.sh` picks the device profile from the DMI strings.
+`builder-setup.sh` picks the device profile from the DMI strings, the
+stick itself carries none, so the device parameters apply from the
+first self rebuild on.
 
 Signed addons in `/boot/loader/addons` are left for temporary
 parameters, `debug` for a verbose boot or `flash` for `iomem=relaxed`
@@ -214,6 +214,19 @@ file of four times the RAM behind a loop device, enabled with discard
 (`swapfile.service`). It only takes the disk space that is actually
 written back and gives it back once the pages are freed. Installations
 from before keep their swap partition in addition, until a reinstall.
+
+## Factory reset
+
+There is no boot entry for it. From the running system:
+
+```sh
+systemctl start factory-reset.target
+```
+
+This requests the reset and reboots, the next boot wipes root and
+home and starts over like a fresh install. That includes
+`/var/lib/builder`, run `builder-setup.sh` with the key again
+afterwards. If the machine no longer boots, reinstall from the stick.
 
 ## Update and rollback by hand
 
