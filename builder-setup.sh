@@ -1,6 +1,6 @@
 #!/bin/bash
 # One time setup of the builder partition on a machine running this
-# image with the autobuild profile. Run as root after the first boot.
+# image. Run as root after the first boot.
 set -euo pipefail
 
 d=/var/lib/builder
@@ -17,7 +17,7 @@ if [ ! -e "$d/arch-image-based/mkosi.local.conf" ]; then
     cat > "$d/arch-image-based/mkosi.local.conf" <<'EOF'
 [Config]
 # adjust to this machine: gnome or kde, swtpm only without a hardware TPM
-Profiles=desktop,gnome,flathub,swtpm,autobuild
+Profiles=gnome,swtpm
 
 [Build]
 CacheDirectory=/var/lib/builder/cache

@@ -6,9 +6,11 @@ derived from [ParticleOS](https://github.com/systemd/particleos)
 read-only and verity protected, updates install A/B and a failed boot
 rolls back on its own.
 
-The image is the same on all machines. Everything device specific stays
-outside of it: kernel parameters as signed addons, extra software as
-system extensions, user apps as flatpaks.
+The desktop, the Flathub setup and the weekly self rebuild are always in
+the image, a machine only picks GNOME or KDE and a few hardware
+profiles. Everything device specific stays outside of it: kernel
+parameters as signed addons, extra software as system extensions, user
+apps as flatpaks.
 
 ## Build
 
@@ -24,14 +26,17 @@ trust for Secure Boot and verity, so keep it, and use a separate one per
 machine if you do not want one key to be valid on all of them.
 
 Profiles go into `mkosi.local.conf`, pick `gnome` or `kde`, add `swtpm`
-on machines without a usable hardware TPM, `autobuild` for self updates,
-and `installer` for the image you are going to burn to a stick. The
-command line has no effect on profiles, they have to be in this file:
+on machines without a usable hardware TPM and `installer` for the image
+you are going to burn to a stick. The command line has no effect on
+profiles, they have to be in this file:
 
 ```conf
 [Config]
-Profiles=desktop,gnome,flathub,swtpm,autobuild,installer
+Profiles=gnome,swtpm,installer
 ```
+
+Desktop, Flathub and the self rebuild are not profiles, they live in
+`mkosi.conf.d/` and are always on.
 
 `installer` adds the live and installer entries to the boot menu. An
 installed system does not need them, and the config that
@@ -131,7 +136,7 @@ systemd-sysext refresh
 An extension only merges on the image it was built for, so both slots
 can keep their own copy and a rollback picks up the matching one.
 
-With the `autobuild` profile the weekly build rebuilds the installed
+The weekly build also rebuilds the installed
 extensions against the new image and keeps the two newest. It builds
 what it finds a recipe for in `sysexts/`, so put yours there and bring
 it onto the machine with `builder-update-config.sh`. An extension
@@ -207,7 +212,7 @@ stack with the device one. `silent-boot` hides the error and status
 output the image's defaults still allow; drop it next to the device
 addon on machines that should boot without any text.
 
-## Self updates (autobuild profile)
+## Self updates
 
 The machine rebuilds its image weekly with current packages and stages
 it, the next reboot activates it. One time setup, as root on the

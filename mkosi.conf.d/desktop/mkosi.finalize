@@ -7,6 +7,6 @@
 set -euo pipefail
 
 mkdir -p "$ARTIFACTDIR/io.mkosi.initrd"
-cd "$SRCDIR/mkosi.profiles/desktop/mkosi.extra"
+cd "$SRCDIR/mkosi.conf.d/desktop/mkosi.extra"
 find etc/plymouth -type f -o -type d | cpio -o -H newc --quiet \
     > "$ARTIFACTDIR/io.mkosi.initrd/60-plymouth-theme.cpio"
