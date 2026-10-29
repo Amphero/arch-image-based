@@ -172,6 +172,11 @@ cp mkosi.key mkosi.crt /var/lib/builder/arch-image-based/
 systemctl start image-rebuild
 ```
 
+Checkout, package cache, build output and key live in
+`/var/lib/builder`, a compressed subvolume on the encrypted root, so the
+build shares the free space with the system instead of a fixed
+partition.
+
 The weekly build never changes the configuration. Config updates are
 manual and take a snapshot first:
 

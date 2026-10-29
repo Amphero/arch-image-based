@@ -1,10 +1,12 @@
 #!/bin/bash
-# One time setup of the builder partition on a machine running this
+# One time setup of the builder workspace on a machine running this
 # image. Run as root after the first boot.
 set -euo pipefail
 
 d=/var/lib/builder
-mountpoint -q "$d" || { echo "$d is not mounted (second boot needed after install)"; exit 1; }
+# tmpfiles creates the workspace subvolume on boot, compress what goes in
+[ -d "$d" ] || btrfs subvolume create "$d"
+btrfs property set "$d" compression zstd
 
 btrfs subvolume create "$d/arch-image-based" 2>/dev/null || true
 mkdir -p "$d/cache" "$d/output" "$d/snapshots"
