@@ -78,6 +78,13 @@ mkosi --profile=installer burn /dev/<usb-stick>
 ```
 
 Boot the stick with Secure Boot in setup mode and choose "Installer".
+
+On vendor firmware check first whether the machine needs option ROMs
+signed by Microsoft (discrete GPUs, some Thunderbolt and NVMe devices).
+The auto enrollment only puts your own certificate into db; on such
+hardware the screen or the disk can stay dark until the Microsoft UEFI
+CA is added back. Set a firmware password so Secure Boot cannot simply
+be switched off again.
 The first boot of the installed system creates the encrypted partitions
 and asks for a user, then the login manager comes up.
 
