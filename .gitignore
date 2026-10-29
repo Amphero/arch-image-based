@@ -10,6 +10,6 @@ mkosi.crt
 mkosi.version
 mkosi.rootpw
 .mkosi-private
-sysexts/*/mkosi.packages/
+mkosi.packages/
 
 mkosi.output-kde/

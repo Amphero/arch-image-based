@@ -6,10 +6,11 @@ derived from [ParticleOS](https://github.com/systemd/particleos)
 read-only and verity protected, updates install A/B and a failed boot
 rolls back on its own.
 
-The desktop, the Flathub setup and the weekly self rebuild are always in
-the image, a machine only picks GNOME or KDE and a few hardware
-profiles. Kernel parameters per model are profiles as well, extra
-software comes as system extensions, user apps as flatpaks.
+Every machine builds its own image from the same repo. The desktop, the
+Flathub setup and the weekly self rebuild are always in it, a machine
+only picks what differs: GNOME or KDE and a few hardware profiles.
+Kernel parameters per model are profiles as well, user apps are
+flatpaks.
 
 ## Build
 
@@ -24,15 +25,23 @@ mkosi genkey
 trust for Secure Boot and verity, so keep it, and use a separate one per
 machine if you do not want one key to be valid on all of them.
 
-Profiles go into `mkosi.local.conf`, pick `gnome` or `kde`, the device
-profile (see below), add `swtpm` on machines without a usable hardware
-TPM and `installer` for the image you are going to burn to a stick. The
-command line has no effect on profiles, they have to be in this file:
+`mkosi.local.conf` only holds what differs per machine. The command
+line has no effect on profiles, they have to be in this file:
 
 ```conf
 [Config]
 Profiles=gnome,t480,installer
 ```
+
+| Profile     | When                                                  |
+| ----------- | ----------------------------------------------------- |
+| `gnome`     | GNOME, or                                             |
+| `kde`       | KDE Plasma, exactly one of the two                    |
+| `coreboot`  | machines on the custom coreboot/vboot firmware        |
+| `swtpm`     | machines without a usable hardware TPM                |
+| `tailscale` | Tailscale client and NetworkManager plugin            |
+| `t480` …    | one device profile, see below                         |
+| `installer` | the image you are going to burn to a stick            |
 
 Desktop, Flathub and the self rebuild are not profiles, they live in
 `mkosi.conf.d/` and are always on.
@@ -70,81 +79,25 @@ Boot the stick with Secure Boot in setup mode and choose "Installer".
 The first boot of the installed system creates the encrypted partitions
 and asks for a user, then the login manager comes up.
 
-## System extensions
+## Extra software
 
-Extensions add packages to the read-only /usr without rebuilding the
-image, for software only some of your machines need. Write your own as
-a directory under `sysexts/`, `sysexts/tailscale` and `sysexts/coreboot`
-are two examples:
-
-```conf
-# sysexts/foo/mkosi.conf
-[Distribution]
-Distribution=arch
-
-[Output]
-Format=sysext
-Overlay=yes
-
-[Content]
-Packages=
-        foo
-```
-
-A unit in an extension is not enabled by the preset, symlink it in the
-extension itself, in `sysexts/foo/mkosi.extra/`:
+Software only some machines need is a profile in `mkosi.profiles/`,
+`tailscale` and `coreboot` are examples. A unit is not enabled by the
+preset after the first boot, so enable it with a static symlink in the
+profile's `mkosi.extra/`:
 
 ```sh
 usr/lib/systemd/system/multi-user.target.wants/foo.service -> ../foo.service
 ```
 
-The same trick masks something from the image, symlink it to
-`/dev/null`. Packages that are not in the Arch repos go into
-`sysexts/foo/mkosi.packages/` as built packages.
+Packages that are not in the Arch repos go into `mkosi.packages/` at
+the top of the repo as built packages. Since every machine builds its
+own image, there is nothing to rebuild or install separately, and a
+rollback always brings the matching software along.
 
-To restart a service whenever the extension is refreshed, list it in
-`sysexts/foo/extension-release`, `sysexts/tailscale` does that for
-tailscaled:
+### The coreboot profile
 
-```conf
-EXTENSION_RESTART_UNITS=foo.service
-```
-
-Build the extension against the image it will run on, as root:
-
-```sh
-./build-sysext.sh foo mkosi.output/ArchLinux_<version>_x86-64.raw
-```
-
-Install it on the machine, as root:
-
-```sh
-cp foo_<version>.sysext.raw /var/lib/extensions/
-systemd-sysext refresh
-```
-
-`systemd-sysext.service` merges it again on every boot. To see what is
-active, and to remove one:
-
-```sh
-systemd-sysext status
-rm /var/lib/extensions/foo_<version>.sysext.raw
-systemd-sysext refresh
-```
-
-An extension only merges on the image it was built for, so both slots
-can keep their own copy and a rollback picks up the matching one.
-
-The weekly build also rebuilds the installed
-extensions against the new image and keeps the two newest. It builds
-what it finds a recipe for in `sysexts/`, so put yours there and bring
-it onto the machine with `builder-update-config.sh`. An extension
-without a recipe is left alone, which means it stops merging after the
-next update, since it is built for the previous image.
-
-### The coreboot extension
-
-`sysexts/coreboot` carries what a machine running the
+`coreboot` carries what a machine running the
 [custom coreboot/vboot firmware](https://github.com/Amphero/coreboot-t480)
 needs on the device side:
 
@@ -167,10 +120,9 @@ needs on the device side:
 
 `cbmem`, the eventlog reader, is not in the Arch repos. Build it from
 the fetched coreboot tree (`make -C util/cbmem`) and put it into
-`sysexts/coreboot/mkosi.packages/` as a package. Internal flashing
-additionally needs `iomem=relaxed` on the kernel cmdline, which an
-extension cannot set. Put it in the machine's addon for the flash, see
-below.
+`mkosi.packages/` as a package and add it to the profile. Internal
+flashing additionally needs `iomem=relaxed` on the kernel cmdline, put
+it in the machine's addon for the flash, see below.
 
 `fwupdx64.efi` is signed with the image's key at build time
 (`mkosi.postinst.chroot`). `/usr` is immutable, so the firmware repo's

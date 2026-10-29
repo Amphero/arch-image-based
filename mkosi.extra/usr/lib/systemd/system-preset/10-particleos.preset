@@ -38,6 +38,5 @@ enable ssh.socket
 enable sshd-keygen.service
 
 # Hardware and infrastructure services from the profiles.
-enable systemd-sysext.service
 enable bluetooth.service
 enable cups.socket
