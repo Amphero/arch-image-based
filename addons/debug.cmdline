@@ -1,0 +1,7 @@
+# Temporary, for a verbose boot when something goes wrong. Addons are
+# appended after the UKI's own cmdline, so these values win. Remove the
+# addon again afterwards.
+loglevel=7
+systemd.show_status=true
+rd.udev.log_level=info
+plymouth.enable=0

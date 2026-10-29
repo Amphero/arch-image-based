@@ -149,9 +149,9 @@ KernelCommandLine=
         mem_sleep_default=deep
 ```
 
-Signed addons in `/boot/loader/addons` are left for parameters that are
-not tied to a model, `flash` for `iomem=relaxed` while flashing a
-coreboot machine for example:
+Signed addons in `/boot/loader/addons` are left for temporary
+parameters, `debug` for a verbose boot or `flash` for `iomem=relaxed`
+while flashing a coreboot machine:
 
 ```sh
 ./build-addon.sh flash
@@ -159,11 +159,6 @@ coreboot machine for example:
 mkdir -p /boot/loader/addons
 cp mkosi.output/flash.addon.efi /boot/loader/addons/
 ```
-
-The stub applies every addon in that directory, so they stack.
-`silent-boot` hides the error and status output the image's defaults
-still allow; drop it there on machines that should boot without any
-text.
 
 ## Self updates
 
