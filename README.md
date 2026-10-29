@@ -74,7 +74,7 @@ and asks for a user, then the login manager comes up.
 
 Extensions add packages to the read-only /usr without rebuilding the
 image, for software only some of your machines need. Write your own as
-a directory under `sysexts/`, `sysexts/tailscale` and `sysexts/t480`
+a directory under `sysexts/`, `sysexts/tailscale` and `sysexts/coreboot`
 are two examples:
 
 ```conf
@@ -231,6 +231,19 @@ manual and take a snapshot first:
 ```sh
 ./builder-update-config.sh
 ```
+
+## Power management
+
+The desktop ships tlp and tlp-pd instead of power-profiles-daemon, on
+every machine. tlp-pd serves the same D-Bus interface, so the power mode
+menu in GNOME and KDE keeps working, and tlp's defaults need no config.
+Switch by hand there or with `tlp performance | balanced | power-saver`.
+
+Device tuning comes with the device profile: `t480` carries its drop-in
+in `/usr/lib/tlp.d` and links it into `/etc/tlp.d` via tmpfiles, tlp
+only reads `/etc`. Being part of the image, it follows updates and
+rollbacks and survives a factory reset. Local changes go into a later
+drop-in such as `/etc/tlp.d/50-local.conf`.
 
 ## Update and rollback by hand
 
