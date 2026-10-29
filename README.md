@@ -8,9 +8,8 @@ rolls back on its own.
 
 The desktop, the Flathub setup and the weekly self rebuild are always in
 the image, a machine only picks GNOME or KDE and a few hardware
-profiles. Everything device specific stays outside of it: kernel
-parameters as signed addons, extra software as system extensions, user
-apps as flatpaks.
+profiles. Kernel parameters per model are profiles as well, extra
+software comes as system extensions, user apps as flatpaks.
 
 ## Build
 
@@ -25,14 +24,14 @@ mkosi genkey
 trust for Secure Boot and verity, so keep it, and use a separate one per
 machine if you do not want one key to be valid on all of them.
 
-Profiles go into `mkosi.local.conf`, pick `gnome` or `kde`, add `swtpm`
-on machines without a usable hardware TPM and `installer` for the image
-you are going to burn to a stick. The command line has no effect on
-profiles, they have to be in this file:
+Profiles go into `mkosi.local.conf`, pick `gnome` or `kde`, the device
+profile (see below), add `swtpm` on machines without a usable hardware
+TPM and `installer` for the image you are going to burn to a stick. The
+command line has no effect on profiles, they have to be in this file:
 
 ```conf
 [Config]
-Profiles=gnome,swtpm,installer
+Profiles=gnome,t480,installer
 ```
 
 Desktop, Flathub and the self rebuild are not profiles, they live in
@@ -187,30 +186,32 @@ holds for firmware built from the linked repo; check
 
 ## Device specific kernel parameters
 
-The image ships one cmdline for everyone. Parameters a single machine
-needs go into a file per machine in `addons/`, one parameter per line,
-the files in there are examples:
+Each machine model is a profile that only adds kernel parameters, they
+go straight into the signed UKI: `t480`, `x270`, `infinitybook`,
+`aspire-e5`. A new model is one file:
 
-```sh
-# addons/foo.cmdline
-psmouse.synaptics_intertouch=1
-mem_sleep_default=deep
+```conf
+# mkosi.profiles/foo/mkosi.conf
+[Content]
+KernelCommandLine=
+        mem_sleep_default=deep
 ```
 
-The addon is signed with the same key as the image, systemd-stub picks
-it up at boot:
+Signed addons in `/boot/loader/addons` are left for parameters that are
+not tied to a model, `flash` for `iomem=relaxed` while flashing a
+coreboot machine for example:
 
 ```sh
-./build-addon.sh foo
-# on the machine, as root:
+./build-addon.sh flash
+# on the machine, as root, and remove it again afterwards:
 mkdir -p /boot/loader/addons
-cp foo.addon.efi /boot/loader/addons/
+cp mkosi.output/flash.addon.efi /boot/loader/addons/
 ```
 
-The stub applies every addon in that directory, so feature addons
-stack with the device one. `silent-boot` hides the error and status
-output the image's defaults still allow; drop it next to the device
-addon on machines that should boot without any text.
+The stub applies every addon in that directory, so they stack.
+`silent-boot` hides the error and status output the image's defaults
+still allow; drop it there on machines that should boot without any
+text.
 
 ## Self updates
 

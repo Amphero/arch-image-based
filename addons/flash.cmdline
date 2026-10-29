@@ -1,0 +1,4 @@
+# Temporary, for internal flashing on coreboot machines only. Lets
+# flashrom map the SPI controller. Remove the addon again afterwards,
+# it loosens /dev/mem protection.
+iomem=relaxed

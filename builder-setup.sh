@@ -16,8 +16,9 @@ fi
 if [ ! -e "$d/arch-image-based/mkosi.local.conf" ]; then
     cat > "$d/arch-image-based/mkosi.local.conf" <<'EOF'
 [Config]
-# adjust to this machine: gnome or kde, swtpm only without a hardware TPM
-Profiles=gnome,swtpm
+# adjust to this machine: gnome or kde, one device profile, swtpm only
+# without a hardware TPM
+Profiles=gnome,t480,swtpm
 
 [Build]
 CacheDirectory=/var/lib/builder/cache
