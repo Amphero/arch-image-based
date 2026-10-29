@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Boot counting only blesses a boot once boot-complete.target is
+# reached. Without this check that happens as soon as the system is up,
+# even if the login screen never appears. Require the display manager
+# instead. Deliberately narrower than systemd-boot-check-no-failures:
+# a failed wait-online on an offline boot must not count as a bad image,
+# three of those in a row would roll back a perfectly fine update.
+[Unit]
+Description=Check that the login screen came up
+After=graphical.target
+Before=boot-complete.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# is-active succeeds if at least one of them runs
+ExecStart=/usr/bin/systemctl is-active --quiet gdm.service plasmalogin.service

@@ -182,6 +182,10 @@ recovery key to root (write it down) and starts the first rebuild. Checkout, pac
 build shares the free space with the system instead of a fixed
 partition.
 
+A boot only counts as good once the login screen is up
+(`boot-check-desktop.service`). Three bad boots in a row and the menu
+falls back to the previous version by itself.
+
 The weekly build never changes the configuration. Config updates are
 manual and take a snapshot first:
 
