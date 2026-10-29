@@ -22,8 +22,10 @@ mkosi genkey
 ```
 
 `mkosi genkey` creates the signing key. It is the key the machine will
-trust for Secure Boot and verity, so keep it, and use a separate one per
-machine if you do not want one key to be valid on all of them.
+trust for Secure Boot and verity, so keep it. The self rebuild keeps the key
+lives on the machine, so use a separate one per machine: a machine that
+is taken over can then only sign images for itself, not for all the
+others.
 
 `mkosi.local.conf` only holds what differs per machine. The command
 line has no effect on profiles, they have to be in this file:
@@ -43,12 +45,14 @@ Profiles=gnome,t480,installer
 | `t480` …    | one device profile, see below                         |
 | `installer` | the image you are going to burn to a stick            |
 
+`builder-setup.sh` takes the profiles over from the running image and
+leaves `installer` out.
+
 Desktop, Flathub and the self rebuild are not profiles, they live in
 `mkosi.conf.d/` and are always on.
 
 `installer` adds the live and installer entries to the boot menu. An
-installed system does not need them, and the config that
-`builder-setup.sh` writes for the self updates leaves the profile out.
+installed system does not need them.
 
 Then build:
 
@@ -149,6 +153,8 @@ KernelCommandLine=
         mem_sleep_default=deep
 ```
 
+`builder-setup.sh` picks the device profile from the DMI strings.
+
 Signed addons in `/boot/loader/addons` are left for temporary
 parameters, `debug` for a verbose boot or `flash` for `iomem=relaxed`
 while flashing a coreboot machine:
@@ -167,12 +173,11 @@ it, the next reboot activates it. One time setup, as root on the
 machine:
 
 ```sh
-./builder-setup.sh
-cp mkosi.key mkosi.crt /var/lib/builder/arch-image-based/
-systemctl start image-rebuild
+./builder-setup.sh /path/to/keydir    # holds mkosi.key and mkosi.crt
 ```
 
-Checkout, package cache, build output and key live in
+It takes over the profiles of the running image, copies the key, adds a
+recovery key to root (write it down) and starts the first rebuild. Checkout, package cache, build output and key live in
 `/var/lib/builder`, a compressed subvolume on the encrypted root, so the
 build shares the free space with the system instead of a fixed
 partition.
