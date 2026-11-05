@@ -1,5 +1,34 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
+# Everything not listed here, in the profile presets or in systemd's own
+# 90-systemd.preset is disabled by 99-default.preset. Without that every
+# user unit a package ships got enabled, podman.service, rygel and
+# fluidsynth failed in each session.
+
 enable ssh-agent.service
+enable ssh-agent.socket
 enable p11-kit-server.service
+enable p11-kit-server.socket
+
+# The session bus.
+enable dbus-broker.service
+
+# Audio: pipewire with wireplumber as session manager, pulse compat.
 enable pipewire.service
+enable pipewire.socket
+enable pipewire-pulse.service
+enable pipewire-pulse.socket
+enable wireplumber.service
+
+# Bluetooth file transfer, bluez is on every desktop.
+enable obex.service
+
+# ~/Documents and friends, and the portal's launcher rewrite for
+# flatpaks.
+enable xdg-user-dirs.service
+enable xdg-desktop-portal-rewrite-launchers.service
+
+# Rootless podman and distrobox: the API socket only. podman.service on
+# its own fails without the socket ("unexpected fd received from
+# systemd"), restart and auto-update are opt-in.
+enable podman.socket

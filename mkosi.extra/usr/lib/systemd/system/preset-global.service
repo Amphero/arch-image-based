@@ -1,8 +1,11 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
+# Applies the user unit presets (systemctl preset-all --global) on the
+# first boot and after an image update that changed them, see
+# /usr/lib/arch-image-based/preset-global.
 [Unit]
-ConditionFirstBoot=yes
 ConditionPathIsReadWrite=/etc
+RequiresMountsFor=/var/lib
 
 DefaultDependencies=no
 
@@ -13,7 +16,7 @@ Before=shutdown.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=systemctl preset-all --global
+ExecStart=/usr/lib/arch-image-based/preset-global
 
 [Install]
 WantedBy=basic.target

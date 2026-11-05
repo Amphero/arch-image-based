@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+# GNOME session units, the rest is disabled by 99-default.preset.
+# gnome-remote-desktop stays off, Settings enables it per user when
+# sharing is switched on.
+enable gnome-keyring-daemon.service
+enable gnome-keyring-daemon.socket
+enable gcr-ssh-agent.service
+enable gcr-ssh-agent.socket
+enable org.freedesktop.IBus.session.GNOME.service
+enable evolution-alarm-notify.service
+
+# Screen reader, started from the accessibility settings.
+enable orca.service
+enable speech-dispatcher.socket

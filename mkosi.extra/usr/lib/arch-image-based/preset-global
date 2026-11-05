@@ -1,0 +1,22 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Apply the user unit presets to /etc/systemd/user, on the first boot
+# and again whenever the preset files change with an image update.
+# Presets otherwise only ever run once, an installed system would keep
+# the user units of its first image forever.
+set -euo pipefail
+
+stamp=/var/lib/arch-image-based/user-preset.sha256
+
+shopt -s nullglob
+files=(/usr/lib/systemd/user-preset/*.preset /etc/systemd/user-preset/*.preset)
+sum=$(cat "${files[@]}" /dev/null | sha256sum | cut -d' ' -f1)
+
+if [ -e "$stamp" ] && [ "$(cat "$stamp")" = "$sum" ]; then
+    exit 0
+fi
+
+systemctl preset-all --global
+
+mkdir -p "${stamp%/*}"
+echo "$sum" >"$stamp"

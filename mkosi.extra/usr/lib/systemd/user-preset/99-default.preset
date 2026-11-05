@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+# User units are opt-in, like system units are with systemd's own
+# 99-default.preset. Sorted last, so 10-particleos.preset, the profile
+# presets and systemd's 90-systemd.preset win.
+disable *
