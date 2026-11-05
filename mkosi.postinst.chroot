@@ -49,6 +49,12 @@ if [[ -f /usr/lib/fwupd/efi/fwupdx64.efi ]]; then
         /usr/lib/fwupd/efi/fwupdx64.efi
 fi
 
+# Schema overrides from the extra trees land after the packages, the
+# pacman hook that compiles the schemas has already run by then.
+if command -v glib-compile-schemas >/dev/null && [[ -d /usr/share/glib-2.0/schemas ]]; then
+    glib-compile-schemas /usr/share/glib-2.0/schemas
+fi
+
 # Remember the profiles this image was built with, builder-setup.sh
 # writes them into the machine's mkosi.local.conf so the self rebuild
 # produces the same variant without editing anything by hand.

@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+# USB protection needs the USBGuard daemon, which is not in the image.
+# With it on, gnome-settings-daemon logs "Failed to fetch USBGuard
+# parameters" in every session and protects nothing.
+[org.gnome.desktop.privacy]
+usb-protection=false
