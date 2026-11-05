@@ -3,10 +3,17 @@
 # A plain service instead of a .swap unit: on the live system there is no
 # loop device to wait for, a .swap unit would hold up the boot until its
 # device timeout.
+# Ordered after / only, not after local-fs.target: tmp.mount is ordered
+# After=swap.target, so local-fs.target -> swapfile -> swap.target ->
+# tmp.mount -> local-fs.target is a cycle. systemd breaks it by dropping
+# tmp.mount, /tmp is then mounted late over /tmp/.X11-unix and
+# gnome-shell aborts on login. The file lives in /swap on the root file
+# system.
 [Unit]
 Description=Sparse Swap File
 DefaultDependencies=no
-After=local-fs.target
+After=-.mount
+RequiresMountsFor=/
 Before=swap.target shutdown.target
 Conflicts=shutdown.target
 
