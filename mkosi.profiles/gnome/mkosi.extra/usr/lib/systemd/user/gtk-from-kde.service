@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Moves GTK settings written by KDE Plasma out of the way before the
+# GNOME session starts, see /usr/lib/arch-image-based/gtk-from-kde.
+[Unit]
+Description=Move KDE Plasma's GTK Settings Aside
+Before=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/arch-image-based/gtk-from-kde

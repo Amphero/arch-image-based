@@ -1,0 +1,59 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Move GTK settings that KDE Plasma wrote into the home directory out of
+# the way when the GNOME session starts. Plasma's kde-gtk-config writes
+# a Breeze colour scheme, window buttons and theme names for GTK 2, 3
+# and 4. After switching the image from KDE back to GNOME they stay and
+# recolour GTK and libadwaita apps. GNOME itself keeps its settings in
+# dconf and writes none of these files. Only files with Plasma's
+# signature are moved, into
+# ~/.local/state/arch-image-based/kde-gtk/<time>/, nothing is deleted.
+# Plasma writes them again on its next login.
+set -euo pipefail
+
+cfg="${XDG_CONFIG_HOME:-$HOME/.config}"
+state="${XDG_STATE_HOME:-$HOME/.local/state}/arch-image-based/kde-gtk"
+dest=""
+
+move() {
+    local path="$1" rel
+    [ -e "$path" ] || return 0
+    rel="${path#"$HOME"/}"
+    if [ -z "$dest" ]; then
+        dest="$state/$(date +%Y%m%d-%H%M%S)"
+    fi
+    mkdir -p "$dest/$(dirname "$rel")"
+    mv "$path" "$dest/$rel"
+    echo "moved ~/$rel to $dest/"
+}
+
+for v in gtk-3.0 gtk-4.0; do
+    d="$cfg/$v"
+    # The colour scheme kde-gtk-config generates, every name ends in
+    # _breeze.
+    if [ -f "$d/colors.css" ] && grep -q '^@define-color [a-z_]*_breeze ' "$d/colors.css"; then
+        move "$d/colors.css"
+        # gtk.css only if it is Plasma's one-line import of that scheme.
+        if [ -f "$d/gtk.css" ] &&
+           [ "$(tr -d '[:space:]' <"$d/gtk.css")" = "@import'colors.css';" ]; then
+            move "$d/gtk.css"
+        fi
+        # Plasma writes settings.ini together with the scheme.
+        move "$d/settings.ini"
+    fi
+    # Breeze window buttons and their images.
+    if [ -f "$d/window_decorations.css" ] && grep -q 'assets/close-normal.svg' "$d/window_decorations.css"; then
+        move "$d/window_decorations.css"
+        move "$d/assets"
+    fi
+done
+
+for f in "$cfg/gtkrc" "$cfg/gtkrc-2.0"; do
+    if [ -f "$f" ] && head -n 1 "$f" | grep -q '^# created by KDE Plasma'; then
+        move "$f"
+    fi
+done
+
+if [ -f "$HOME/.gtkrc-2.0" ] && grep -q '^gtk-theme-name="Breeze"' "$HOME/.gtkrc-2.0"; then
+    move "$HOME/.gtkrc-2.0"
+fi
