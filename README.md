@@ -204,7 +204,9 @@ manual and take a snapshot first:
 
 The desktop ships tlp and tlp-pd instead of power-profiles-daemon, on
 every machine. tlp-pd serves the same D-Bus interface, so the power mode
-menu in GNOME and KDE keeps working, and tlp's defaults need no config.
+menu in GNOME and KDE keeps working, and tlp's defaults need no changes.
+`/etc/tlp.conf` is a tmpfiles link to the stock file in the image, tlp
+does not start without it.
 Switch by hand there or with `tlp performance | balanced | power-saver`.
 
 Device tuning comes with the device profile: `t480` and `x270` carry
