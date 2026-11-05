@@ -1,0 +1,27 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Pad the split usr verity signature to the size of its partition.
+#
+# systemd-repart sizes usr-verity-sig partitions at a fixed 16 KiB, the
+# split artifact only holds the JSON (about 2 KiB). systemd-sysupdate
+# 262 zero-fills the rest of a verity-sig partition after writing it
+# (PartitionZeroFill=, on by default for these types) and offloads that
+# to the kernel on the whole disk. While other partitions of the same
+# disk are in use (root, usr, swap), that fails with
+#   Failed to fill up destination with zeroes: Device or resource busy
+# and leaves a half installed slot behind. With the artifact already at
+# the partition size there is nothing left to fill, and the partition
+# still ends in zeroes as required.
+set -euo pipefail
+
+size=$((16 * 1024))
+
+shopt -s nullglob
+for f in "$OUTPUTDIR"/*.usr-*-verity-sig.*.raw; do
+    cur=$(stat -c %s "$f")
+    if [ "$cur" -gt "$size" ]; then
+        echo "$f is $cur bytes, larger than the $size byte verity-sig partition" >&2
+        exit 1
+    fi
+    truncate -s "$size" "$f"
+done
