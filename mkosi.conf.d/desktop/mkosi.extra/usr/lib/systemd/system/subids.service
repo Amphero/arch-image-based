@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Subordinate id ranges for homed users, see
+# /usr/lib/arch-image-based/subids. Runs on every boot before logins are
+# allowed, a user created later gets the ranges on the next boot.
+[Unit]
+Description=Subordinate UID/GID Ranges for Regular Users
+After=systemd-homed.service systemd-homed-firstboot.service systemd-userdbd.service
+Before=systemd-user-sessions.service
+ConditionPathIsReadWrite=/etc
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/arch-image-based/subids
+
+[Install]
+WantedBy=multi-user.target

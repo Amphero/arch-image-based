@@ -1,0 +1,32 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Subordinate uid/gid ranges for rootless podman and distrobox. homed
+# users are not in /etc/passwd, so useradd never writes /etc/subuid and
+# /etc/subgid for them and podman fails with "cannot find UID/GID for
+# user: cannot read subids". Give every regular user without an entry
+# 65536 ids. The ranges start at 100000 (shadow's SUB_UID_MIN) and stay
+# below 524288, where systemd's container range begins, which leaves
+# room for six users. Existing entries are never touched.
+set -euo pipefail
+
+first=100000
+count=65536
+limit=524288
+
+for f in /etc/subuid /etc/subgid; do
+    [ -e "$f" ] || install -m 0644 /dev/null "$f"
+done
+
+userdbctl user --disposition=regular --output=classic --no-legend |
+while IFS=: read -r name _; do
+    for f in /etc/subuid /etc/subgid; do
+        grep -q "^$name:" "$f" && continue
+        start=$(awk -F: -v m="$first" '$2 + $3 > m { m = $2 + $3 } END { print m }' "$f")
+        if [ $((start + count)) -gt "$limit" ]; then
+            echo "no free subordinate id range left for $name in $f" >&2
+            continue
+        fi
+        echo "$name:$start:$count" >>"$f"
+        echo "$f: $name:$start:$count"
+    done
+done
