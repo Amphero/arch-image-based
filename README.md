@@ -218,12 +218,19 @@ Local changes go into a later drop-in such as
 
 ## Swap
 
-zswap compresses swapped pages in RAM first, what does not fit goes to
-a sparse file on the encrypted root, set up the way GNOME OS does it: a
-file of four times the RAM behind a loop device, enabled with discard
-(`swapfile.service`). It only takes the disk space that is actually
-written back and gives it back once the pages are freed. Installations
-from before keep their swap partition in addition, until a reinstall.
+Set up as in GNOME OS (its `zswap-generator` in gnome-build-meta):
+zswap compresses swapped pages in RAM, up to 35% of it
+(`zswap.max_pool_percent=35`, the Arch kernel enables zswap with zstd
+and the shrinker by default). What does not fit goes to a sparse file of
+four times the RAM on the encrypted root, behind a loop device and
+enabled with discard: it only takes the disk space that is actually
+written back and gives it back once the pages are freed. The sysctl
+tuning (`vm.swappiness=133` and the watermarks) is GNOME OS' as well.
+
+`zswap-generator` only sets this up when zswap is on and / is on disk;
+with `zswap.enabled=0` there is no swap file and the sysctl tuning is
+masked. Installations from before keep their swap partition in
+addition, until a reinstall.
 
 ## Factory reset
 
