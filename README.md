@@ -216,6 +216,16 @@ image, it follows updates and rollbacks and survives a factory reset.
 Local changes go into a later drop-in such as
 `/etc/tlp.d/50-local.conf`.
 
+## Kernel lockdown
+
+`lockdown=integrity` as in GNOME OS, on every machine without the
+`coreboot` profile (`mkosi.conf.d/lockdown`). With Secure Boot on, root
+cannot change the running kernel: no unsigned modules, no `/dev/mem`,
+`/dev/port`, iopl or MSR writes, no unsigned kexec, no hibernation.
+coreboot machines are left out because internal flashrom needs
+`/dev/mem` and I/O ports, and an addon cannot lower the lockdown level
+again. Check with `cat /sys/kernel/security/lockdown`.
+
 ## Swap
 
 Set up as in GNOME OS (its `zswap-generator` in gnome-build-meta):
