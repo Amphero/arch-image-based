@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+# Read by set-wireless-regdom (wireless-regdb), which the cfg80211 udev
+# rule runs when the module loads. Matches the default locale de_DE in
+# locale.conf. /etc/conf.d/wireless-regdom is symlinked here by
+# tmpfiles.d/etc.conf, replace the symlink with a real file to change
+# it.
+WIRELESS_REGDOM="DE"
