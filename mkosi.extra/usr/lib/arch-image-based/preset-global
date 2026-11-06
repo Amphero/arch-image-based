@@ -16,6 +16,17 @@ if [ -e "$stamp" ] && [ "$(cat "$stamp")" = "$sum" ]; then
     exit 0
 fi
 
+# Links left behind by a previous image, e.g. GNOME user units after a
+# switch to KDE. preset-all keeps them and stumbles over aliases among
+# them ("dbus-org.bluez.obex.service is an unresolvable alias"). Only
+# links into /usr are removed: their unit is gone with the old image,
+# and switching back recreates them, because the preset files differ.
+# /etc starts empty on the first boot, find fails on a missing
+# directory and set -e would end the script before the presets.
+if [ -d /etc/systemd/user ]; then
+    find /etc/systemd/user -xtype l -lname '/usr/lib/systemd/user/*' -print -delete
+fi
+
 systemctl preset-all --global
 
 mkdir -p "${stamp%/*}"
