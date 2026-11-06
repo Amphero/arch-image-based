@@ -12,6 +12,19 @@ only picks what differs: GNOME or KDE and a few hardware profiles.
 Kernel parameters per model are profiles as well, user apps are
 flatpaks.
 
+## Layout
+
+| Path | What |
+| ---- | ---- |
+| `mkosi.conf`, `mkosi.conf.d/` | the image, always on parts (desktop, autobuild, flathub, lockdown) |
+| `mkosi.profiles/` | `gnome` or `kde`, device and optional profiles |
+| `mkosi.extra/` | files copied into every image |
+| `mkosi.scripts/` | the image's build hooks (postinst, finalize, postoutput, clean) |
+| `mkosi.repart/`, `mkosi.sysupdate/` | partitions of the image and A/B update definitions |
+| `scripts/` | run by hand: `builder-setup.sh`, `builder-update-config.sh`, `build-addon.sh` |
+| `addons/` | kernel cmdline addons for `scripts/build-addon.sh` |
+| `mkosi.bump` | version for `-B`, mkosi only looks for it at the top |
+
 ## Build
 
 ```sh
@@ -134,12 +147,12 @@ flashing additionally needs `iomem=relaxed` on the kernel cmdline, put
 it in the machine's addon for the flash, see below.
 
 `fwupdx64.efi` is signed with the image's key at build time
-(`mkosi.postinst.chroot`). `/usr` is immutable, so the firmware repo's
-runtime `sbctl sign` step cannot work here. The machine's firmware has
-to have the mkosi certificate enrolled, same as for the UKIs.
-`fwupdmgr install` can race the ESP automount (gpt-auto, 120 s idle
-timeout). When UDisks reports the partition as already mounted, trigger
-the mount (`stat /efi/EFI`) or restart fwupd and retry.
+(`mkosi.scripts/postinst.chroot`). `/usr` is immutable, so the firmware
+repo's runtime `sbctl sign` step cannot work here. The machine's
+firmware has to have the mkosi certificate enrolled, same as for the
+UKIs. `fwupdmgr install` can race the ESP automount (gpt-auto, 120 s
+idle timeout). When UDisks reports the partition as already mounted,
+trigger the mount (`stat /efi/EFI`) or restart fwupd and retry.
 
 vbnv expects the vboot non-volatile block at CMOS offset 0x26. That
 holds for firmware built from the linked repo; check
@@ -158,16 +171,16 @@ KernelCommandLine=
         mem_sleep_default=deep
 ```
 
-`builder-setup.sh` picks the device profile from the DMI strings, the
-stick itself carries none, so the device parameters apply from the
-first self rebuild on.
+`scripts/builder-setup.sh` picks the device profile from the DMI
+strings, the stick itself carries none, so the device parameters apply
+from the first self rebuild on.
 
 Signed addons in `/boot/loader/addons` are left for temporary
 parameters, `debug` for a verbose boot or `flash` for `iomem=relaxed`
 while flashing a coreboot machine:
 
 ```sh
-./build-addon.sh flash
+scripts/build-addon.sh flash
 # on the machine, as root, and remove it again afterwards:
 mkdir -p /boot/loader/addons
 cp mkosi.output/flash.addon.efi /boot/loader/addons/
@@ -180,7 +193,7 @@ it, the next reboot activates it. One time setup, as root on the
 machine:
 
 ```sh
-./builder-setup.sh /path/to/keydir    # holds mkosi.key and mkosi.crt
+scripts/builder-setup.sh /path/to/keydir    # holds mkosi.key and mkosi.crt
 ```
 
 It takes over the profiles of the running image, copies the key, adds a
@@ -197,7 +210,7 @@ The weekly build never changes the configuration. Config updates are
 manual and take a snapshot first:
 
 ```sh
-./builder-update-config.sh
+scripts/builder-update-config.sh
 ```
 
 ## Power management
@@ -252,7 +265,7 @@ systemctl start factory-reset.target
 
 This requests the reset and reboots, the next boot wipes root and
 home and starts over like a fresh install. That includes
-`/var/lib/builder`, run `builder-setup.sh` with the key again
+`/var/lib/builder`, run `scripts/builder-setup.sh` with the key again
 afterwards. If the machine no longer boots, reinstall from the stick.
 
 ## Update and rollback by hand

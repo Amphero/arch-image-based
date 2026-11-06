@@ -55,8 +55,9 @@ if command -v glib-compile-schemas >/dev/null && [[ -d /usr/share/glib-2.0/schem
     glib-compile-schemas /usr/share/glib-2.0/schemas
 fi
 
-# Remember the profiles this image was built with, builder-setup.sh
-# writes them into the machine's mkosi.local.conf so the self rebuild
-# produces the same variant without editing anything by hand.
+# Remember the profiles this image was built with,
+# scripts/builder-setup.sh writes them into the machine's
+# mkosi.local.conf so the self rebuild produces the same variant without
+# editing anything by hand.
 mkdir -p /usr/lib/arch-image-based
 printf '%s\n' "${PROFILES:-}" >/usr/lib/arch-image-based/profiles

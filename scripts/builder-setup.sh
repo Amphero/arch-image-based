@@ -1,7 +1,7 @@
 #!/bin/bash
 # One time setup on an installed machine, as root after
 # the first boot:
-#   ./builder-setup.sh /path/to/keydir    (contains mkosi.key, mkosi.crt)
+#   scripts/builder-setup.sh /path/to/keydir    (contains mkosi.key, mkosi.crt)
 # Clones the repo into /var/lib/builder, takes over the profiles of
 # the running image (minus installer) plus the device profile matching
 # this machine, copies the key, adds a recovery
