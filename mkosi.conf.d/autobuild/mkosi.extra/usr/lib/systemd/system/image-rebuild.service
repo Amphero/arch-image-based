@@ -14,7 +14,9 @@ OnSuccess=image-rebuild-notify.service
 [Service]
 Type=oneshot
 WorkingDirectory=/var/lib/builder/arch-image-based
-ExecStart=/usr/bin/mkosi -B -ff sysupdate -- update
+# Without a sleep inhibitor the idle suspend of the GDM greeter (or of a
+# locked session) cuts the build off after a few minutes.
+ExecStart=/usr/bin/systemd-inhibit --what=sleep:idle --mode=block --who=image-rebuild --why="Building and installing a new image" /usr/bin/mkosi -B -ff sysupdate -- update
 ExecStartPost=/usr/bin/find /var/lib/builder/cache -type f -mtime +28 -delete
 TimeoutStartSec=3h
 Nice=10
