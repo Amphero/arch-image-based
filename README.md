@@ -101,6 +101,12 @@ be switched off again.
 The first boot of the installed system creates the encrypted partitions
 and asks for a user, then the login manager comes up.
 
+Users are systemd-homed users with a LUKS image in `/home`. homed may
+grow the image on login but never shrinks it again
+(`auto-resize-mode=grow`, set on the first login by
+`user@.service.d/10-homed-grow-only.conf`): shrinking a full home on
+logout takes longer than a shutdown waits and gets killed.
+
 ## Extra software
 
 Software only some machines need is a profile in `mkosi.profiles/`,

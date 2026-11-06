@@ -1,0 +1,35 @@
+#!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Let homed grow a LUKS home image, but never shrink it again.
+#
+# homed defaults to auto-resize-mode=shrink-and-grow for LUKS homes on
+# btrfs: on every logout and shutdown it shrinks the image back to what
+# is used. With a full home that means moving tens of GB inside btrfs,
+# longer than the 90s systemd gives the stop job. On aspire (88G in the
+# home) the shutdown hung for two minutes, then systemd killed the
+# resize with SIGKILL. btrfs rolled it back, but every logout would do
+# the same.
+#
+# The record can only be changed while the home is active: for an
+# inactive LUKS home homectl update reports success and changes nothing.
+# So this runs from user@.service, after pam_systemd_home has activated
+# the home. Users that are not homed, other storage types and records
+# that already say grow are left alone, after the first login this is a
+# no-op.
+set -euo pipefail
+
+uid=${1:?usage: homed-grow-only <uid>}
+
+json=$(homectl inspect --json=short "$uid" 2>/dev/null) || exit 0
+
+read -r name storage mode < <(python3 -c '
+import json, sys
+d = json.loads(sys.argv[1])
+print(d.get("userName", ""), d.get("storage", "luks"), d.get("autoResizeMode", "-"))
+' "$json")
+
+[ "$storage" = luks ] || exit 0
+[ "$mode" = grow ] && exit 0
+
+homectl update "$name" --auto-resize-mode=grow
+echo "$name: auto-resize-mode=grow"
