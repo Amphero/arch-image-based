@@ -3,7 +3,7 @@
 Description=Weekly Image Rebuild
 
 [Timer]
-OnCalendar=weekly
+OnCalendar=daily
 RandomizedDelaySec=4h
 Persistent=true
 

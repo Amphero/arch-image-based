@@ -3,20 +3,27 @@
 # current packages and stages it via sysupdate. Activation happens on
 # the next regular reboot, a failed boot falls back automatically (boot
 # counting). Does nothing until scripts/builder-setup.sh was run once.
+# The timer fires daily, the build only runs when the last successful
+# one is six days old or more: a day on battery only shifts it by a day.
+# scripts/builder-update-config.sh removes the stamp, rm it by hand to
+# force a build.
 [Unit]
 Description=Weekly Image Rebuild
 After=network-online.target
 Wants=network-online.target
 ConditionACPower=true
 ConditionPathExists=/var/lib/builder/arch-image-based/mkosi.conf
-OnSuccess=image-rebuild-notify.service
+OnSuccess=image-rebuild-notify@staged.service
+OnFailure=image-rebuild-notify@failed.service
 
 [Service]
 Type=oneshot
+ExecCondition=/usr/bin/bash -c '[ -z "$$(find /var/lib/builder/last-success -mtime -6 2>/dev/null)" ]'
 WorkingDirectory=/var/lib/builder/arch-image-based
 # Without a sleep inhibitor the idle suspend of the GDM greeter (or of a
 # locked session) cuts the build off after a few minutes.
 ExecStart=/usr/bin/systemd-inhibit --what=sleep:idle --mode=block --who=image-rebuild --why="Building and installing a new image" /usr/bin/mkosi -B -ff sysupdate -- update
+ExecStartPost=/usr/bin/touch /var/lib/builder/last-success
 ExecStartPost=/usr/bin/find /var/lib/builder/cache -type f -mtime +28 -delete
 TimeoutStartSec=3h
 Nice=10

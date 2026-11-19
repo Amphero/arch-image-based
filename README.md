@@ -195,8 +195,10 @@ cp mkosi.output/flash.addon.efi /boot/loader/addons/
 ## Self updates
 
 The machine rebuilds its image weekly with current packages and stages
-it, the next reboot activates it. One time setup, as root on the
-machine:
+it, the next reboot activates it. The timer runs daily and builds once
+the last success is six days old, only on AC power. Logged in users get
+a notification when the new image is staged or the build failed. One
+time setup, as root on the machine:
 
 ```sh
 scripts/builder-setup.sh /path/to/keydir    # holds mkosi.key and mkosi.crt

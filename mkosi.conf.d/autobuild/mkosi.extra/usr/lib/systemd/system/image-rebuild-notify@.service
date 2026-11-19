@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Tell everyone who is logged in how the rebuild went, %i is staged or
+# failed. Uses gdbus since libnotify is not in the image, and runs on
+# the user's own bus via systemd-run so it works from a system service.
+# Best effort, with nobody logged in a staged update simply applies on
+# the next reboot.
+[Unit]
+Description=Notify logged in users about the image rebuild (%i)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c ' \
+    if [ "%i" = failed ]; then \
+        icon=dialog-error-symbolic; title="System update failed"; \
+        body="The rebuild failed, the running image stays. journalctl -u image-rebuild shows why."; \
+    else \
+        icon=software-update-available-symbolic; title="System update staged"; \
+        body="The new image is built, it takes effect on the next reboot."; \
+    fi; \
+    loginctl list-users --no-legend | while read -r uid user rest; do \
+        systemd-run --machine="$$user@.host" --user --collect --quiet -- \
+            gdbus call --session \
+                --dest org.freedesktop.Notifications \
+                --object-path /org/freedesktop/Notifications \
+                --method org.freedesktop.Notifications.Notify \
+                "image-rebuild" 0 "$$icon" "$$title" "$$body" \
+                "[]" "{}" 10000 || :; \
+    done'

@@ -9,6 +9,8 @@ keep=2
 
 btrfs subvolume snapshot -r "$d/arch-image-based" "$d/snapshots/$ts"
 git -C "$d/arch-image-based" pull --ff-only
+# new config, the next start of image-rebuild must not be skipped
+rm -f "$d/last-success"
 
 # Two, like the two slots on disk: the config the running image was
 # built from and the one before it. Older ones are not free either, a
